@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-6;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-clay px-6 py-3 text-sm font-medium text-paper transition hover:bg-ink;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-ink/20 px-6 py-3 text-sm font-medium text-ink transition hover:border-ink;
+  }
+  .header-cta {
+    @apply inline-flex min-h-[3rem] items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-bold text-body transition hover:bg-gold-light;
+  }
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-clay;
+  }
+}
+
+.sound-bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+
+.sound-bars i {
+  display: block;
+  width: 3px;
+  height: 12px;
+  border-radius: 999px;
+  background: #031d29;
+  animation: sound-wave 0.8s ease-in-out infinite alternate;
+}
+
+.sound-bars i:nth-child(2) {
+  height: 16px;
+  animation-delay: 0.2s;
+}
+
+.sound-bars i:nth-child(3) {
+  height: 9px;
+  animation-delay: 0.4s;
+}
+
+@keyframes sound-wave {
+  from {
+    transform: scaleY(0.45);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
