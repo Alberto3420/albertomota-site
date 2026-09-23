@@ -78,7 +78,7 @@ export default function CompositionsGrid() {
   return (
     <section id="composicoes" className="border-t border-white/10 bg-[#111817] py-20 text-paper">
       <div className="container-page">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e4ae00]">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
           Composições de Alberto Mota
         </span>
         <h2 className="mt-2 text-3xl font-semibold md:text-4xl">Dez histórias. Muitos caminhos e sentimentos.</h2>

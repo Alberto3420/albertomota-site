@@ -20,9 +20,11 @@ export default function Method() {
           {STEPS.map((step) => (
             <div
               key={step.number}
-              className="rounded-2xl border border-[#e4ded5] bg-[#fbf8f3] p-6"
+              className="group rounded-2xl border border-[#e4ded5] bg-[#fbf8f3] p-6 transition duration-200 hover:-translate-y-1 hover:border-clay/50 hover:shadow-lg hover:shadow-clay/10"
             >
-              <span className="text-3xl font-medium text-clay">{step.number}</span>
+              <span className="font-serif text-4xl font-semibold text-clay/80 transition group-hover:text-clay">
+                {step.number}
+              </span>
               <h3 className="mt-3 text-xl font-semibold text-navy">{step.title}</h3>
               <p className="mt-2 text-sm leading-6 text-[#70747a]">{step.description}</p>
             </div>

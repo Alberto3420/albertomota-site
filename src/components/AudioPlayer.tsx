@@ -18,7 +18,7 @@ export default function AudioPlayer({ src, title }: { src: string | null; title?
       <button
         type="button"
         disabled
-        className="inline-flex min-w-[6rem] items-center justify-center gap-2 rounded-full border border-[#e4ae00] px-5 py-2 text-sm font-semibold text-[#e4ae00]"
+        className="inline-flex min-w-[6rem] items-center justify-center gap-2 rounded-full border border-gold px-5 py-2 text-sm font-semibold text-gold"
       >
         <span aria-hidden="true">▶</span>
         Ouvir

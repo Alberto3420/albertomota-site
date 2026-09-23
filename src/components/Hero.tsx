@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom'
-
 export default function Hero() {
   return (
     <section
@@ -17,7 +15,7 @@ export default function Hero() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-sand">
             Composição musical
           </span>
-          <h1 className="text-4xl font-semibold leading-tight md:text-6xl">
+          <h1 className="text-4xl font-semibold leading-[1.1] md:text-6xl lg:text-7xl">
             Histórias que se transformam em canções
           </h1>
           <p className="max-w-xl text-lg text-paper/80">
@@ -34,9 +32,6 @@ export default function Hero() {
             >
               Conhecer o método
             </a>
-            <Link to="/dashboard" className="inline-flex items-center justify-center rounded-full border border-gold px-6 py-3 text-sm font-medium text-gold transition hover:bg-gold hover:text-ink">
-              Meu painel
-            </Link>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ export default {
         body: '#151820',
       },
       fontFamily: {
-        serif: ['"Poppins"', 'sans-serif'],
+        serif: ['"Fraunces"', 'Georgia', 'serif'],
         sans: ['"Poppins"', 'sans-serif'],
       },
     },
