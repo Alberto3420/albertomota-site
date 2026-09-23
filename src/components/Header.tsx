@@ -45,19 +45,10 @@ export default function Header() {
               Painel admin
             </Link>
           )}
-          {user ? (
+          {user && (
             <button onClick={() => void signOut()} className="btn-secondary">
               Sair
             </button>
-          ) : (
-            <a href="#composicoes" className="header-cta">
-              Ouvir composições
-            </a>
-          )}
-          {user && !isAdmin && (
-            <Link to="/login" className="header-cta">
-              Ouvir composições
-            </Link>
           )}
         </div>
 
@@ -93,14 +84,10 @@ export default function Header() {
                 Meu painel
               </Link>
             )}
-            {user ? (
+            {user && (
               <button onClick={() => void signOut()} className="btn-secondary w-fit">
                 Sair
               </button>
-            ) : (
-              <a href="#composicoes" onClick={() => setOpen(false)} className="header-cta w-fit">
-                Ouvir composições
-              </a>
             )}
           </nav>
         </div>
