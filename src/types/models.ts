@@ -45,3 +45,36 @@ export interface Profile {
   is_admin: boolean
   created_at: string
 }
+
+export type MusicProjectStatus =
+  | 'draft'
+  | 'payment_pending'
+  | 'queued'
+  | 'generating'
+  | 'ready'
+  | 'failed'
+
+export interface MusicProject {
+  id: string
+  user_id: string
+  title: string
+  melody: string
+  lyrics: string
+  status: MusicProjectStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface MusicVersion {
+  id: string
+  project_id: string
+  version_number: number
+  melody: string
+  lyrics: string
+  status: 'queued' | 'generating' | 'ready' | 'failed'
+  external_id: string | null
+  clip_id: string | null
+  audio_url: string | null
+  error_message: string | null
+  created_at: string
+}

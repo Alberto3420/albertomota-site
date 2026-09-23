@@ -29,8 +29,9 @@ VITE_SUPABASE_ANON_KEY=sua-chave-anon
 ```
 
 4. No painel do Supabase, vá em **SQL Editor > New query**, cole todo o conteúdo de
-   `supabase/schema.sql` e clique em **Run**. Isso cria as tabelas (`profiles`,
-   `compositions`, `comments`, `likes`, `fan_submissions`), as políticas de segurança (RLS)
+  `supabase/schema.sql` e clique em **Run**. Isso cria as tabelas (`profiles`,
+  `compositions`, `comments`, `likes`, `fan_submissions`, `music_projects`,
+  `music_versions`, `music_payments`), as políticas de segurança (RLS)
    e os buckets de storage (`covers`, `audio`, `fan-uploads`).
 
 ## 3. Rodar localmente
@@ -67,7 +68,27 @@ Storage, e a composição aparece imediatamente na home, com player de áudio e 
 Visitantes logados podem enviar foto/áudio/vídeo pela seção "Espaço dos fãs" na home. Esses
 envios ficam com status `pending` e aparecem em `/admin` para você aprovar ou rejeitar.
 
-## 7. Deploy
+## 7. Estúdio de criação
+
+Usuários autenticados acessam `/criar` para informar título, direção melódica e letra. O
+pedido fica salvo em `music_projects`, a primeira tentativa em `music_versions` e o valor
+em `music_payments`. A estrutura já permite registrar melhorias como novas versões.
+
+As chaves da Suno e do Asaas devem ser usadas em Supabase Edge Functions. Não coloque essas
+credenciais em variáveis `VITE_*` ou no código do navegador. A integração da Suno usa as funções
+`generate-music` e `suno-callback`:
+
+```bash
+supabase functions deploy generate-music
+supabase functions deploy suno-callback --no-verify-jwt
+supabase secrets set SUNO_API_KEY="sua-chave-da-suno"
+```
+
+O endpoint usado é `POST https://api.sunoapi.org/api/v1/generate`, com o header
+`Authorization: Bearer ...`. A Suno chama `suno-callback` quando a geração termina. O checkout
+do Asaas ainda precisa ser conectado antes de cobrar ou liberar a geração em produção.
+
+## 8. Deploy
 
 Funciona em qualquer serviço de hospedagem estática (Vercel, Netlify, Cloudflare Pages):
 

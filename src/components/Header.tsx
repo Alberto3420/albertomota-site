@@ -35,6 +35,11 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          {user && !isAdmin && (
+            <Link to="/dashboard" className="text-sm font-medium text-gold-light hover:underline">
+              Meu painel
+            </Link>
+          )}
           {isAdmin && (
             <Link to="/admin" className="text-sm font-medium text-gold-light hover:underline">
               Painel admin
@@ -81,6 +86,11 @@ export default function Header() {
             {isAdmin && (
               <Link to="/admin" className="text-sm font-medium text-gold-light">
                 Painel admin
+              </Link>
+            )}
+            {user && !isAdmin && (
+              <Link to="/dashboard" onClick={() => setOpen(false)} className="text-sm font-medium text-gold-light">
+                Meu painel
               </Link>
             )}
             {user ? (

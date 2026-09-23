@@ -1,0 +1,4 @@
+project_id = "vszdpaithvzsuheaftek"
+
+[functions.suno-callback]
+verify_jwt = false

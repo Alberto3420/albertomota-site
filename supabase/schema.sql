@@ -49,6 +49,81 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- ---------- MUSIC GENERATION ----------
+-- Um projeto guarda o briefing; cada tentativa ou melhoria vira uma versão.
+create table if not exists public.music_projects (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  title text not null,
+  melody text not null,
+  lyrics text not null,
+  status text not null default 'draft' check (status in ('draft', 'payment_pending', 'queued', 'generating', 'ready', 'failed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.music_versions (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.music_projects (id) on delete cascade,
+  version_number integer not null,
+  melody text not null,
+  lyrics text not null,
+  status text not null default 'queued' check (status in ('queued', 'generating', 'ready', 'failed')),
+  external_id text,
+  clip_id text,
+  audio_url text,
+  error_message text,
+  created_at timestamptz not null default now(),
+  unique (project_id, version_number)
+);
+
+-- Mantém instalações existentes compatíveis com o id do clipe da Suno.
+alter table public.music_versions add column if not exists clip_id text;
+
+create table if not exists public.music_payments (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.music_projects (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  provider text not null default 'asaas' check (provider in ('asaas')),
+  external_id text,
+  status text not null default 'pending' check (status in ('pending', 'confirmed', 'overdue', 'cancelled', 'refunded')),
+  amount_cents integer not null check (amount_cents > 0),
+  checkout_url text,
+  paid_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.music_projects enable row level security;
+alter table public.music_versions enable row level security;
+alter table public.music_payments enable row level security;
+
+create policy "music_projects: usuario acessa os proprios projetos"
+  on public.music_projects for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "music_versions: usuario acessa as proprias versoes"
+  on public.music_versions for all
+  using (exists (
+    select 1 from public.music_projects p
+    where p.id = project_id and p.user_id = auth.uid()
+  ))
+  with check (exists (
+    select 1 from public.music_projects p
+    where p.id = project_id and p.user_id = auth.uid()
+  ));
+
+create policy "music_payments: usuario acessa os proprios pagamentos"
+  on public.music_payments for select
+  using (auth.uid() = user_id);
+
+create policy "music_payments: usuario cria pagamento pendente"
+  on public.music_payments for insert
+  with check (auth.uid() = user_id and status = 'pending');
+
+-- A confirmação e as atualizações de pagamentos devem ocorrer numa Edge Function,
+-- depois do webhook do Asaas, nunca com a chave privada no navegador.
+
 -- ---------- COMPOSITIONS ----------
 create table if not exists public.compositions (
   id uuid primary key default gen_random_uuid(),
