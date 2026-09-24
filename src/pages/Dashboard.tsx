@@ -18,6 +18,8 @@ export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const [activeView, setActiveView] = useState<'music' | 'generate'>('music')
   const [projects, setProjects] = useState<Array<MusicProject & { music_versions: MusicVersion[] }>>([])
+  const [credits, setCredits] = useState<number | null>(null)
+  const [creditsError, setCreditsError] = useState(false)
 
   async function loadProjects() {
     if (!user) return
@@ -31,8 +33,22 @@ export default function Dashboard() {
     }
   }
 
+  async function loadCredits() {
+    const { data, error } = await supabase.functions.invoke('suno-credits')
+    if (error || typeof data?.credits !== 'number') {
+      setCreditsError(true)
+      return
+    }
+    setCreditsError(false)
+    setCredits(data.credits)
+  }
+
   useEffect(() => {
     void loadProjects()
+  }, [user?.id])
+
+  useEffect(() => {
+    void loadCredits()
   }, [user?.id])
 
   useEffect(() => {
@@ -41,15 +57,25 @@ export default function Dashboard() {
     return () => window.clearInterval(timer)
   }, [projects, user?.id])
 
+  async function handleCreated() {
+    await Promise.all([loadProjects(), loadCredits()])
+  }
+
   return (
-    <main className="min-h-screen bg-paper">
-      <header className="border-b border-ink/10 bg-navy text-white">
+    <main className="min-h-screen bg-[#111817] text-paper">
+      <header className="border-b border-white/10 bg-navy text-white">
         <div className="container-page flex min-h-20 items-center justify-between gap-4">
           <div>
             <Link to="/" className="text-sm text-white/60 hover:text-white">← Voltar ao site</Link>
             <p className="mt-1 font-semibold">Meu painel</p>
           </div>
           <div className="flex items-center gap-3">
+            <span
+              className="rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold-light"
+              title="Créditos restantes na Suno"
+            >
+              Créditos Suno: {credits !== null ? credits.toLocaleString('pt-BR') : creditsError ? 'indisponível' : '…'}
+            </span>
             <span className="hidden text-sm text-white/70 sm:inline">{profile?.display_name || user?.email}</span>
             <button onClick={() => void signOut()} className="rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-white">
               Sair
@@ -59,16 +85,16 @@ export default function Dashboard() {
       </header>
 
       <div className="container-page grid gap-8 py-10 lg:grid-cols-[15rem_1fr]">
-        <nav className="self-start rounded-2xl border border-ink/10 bg-white/50 p-2" aria-label="Menu do painel">
+        <nav className="self-start rounded-2xl border border-white/10 bg-white/5 p-2" aria-label="Menu do painel">
           <button
             onClick={() => setActiveView('music')}
-            className={`w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'music' ? 'bg-ink text-paper' : 'text-ink/70 hover:bg-sand'}`}
+            className={`w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'music' ? 'bg-gold text-body' : 'text-paper/70 hover:bg-white/10'}`}
           >
             Minhas músicas
           </button>
           <button
             onClick={() => setActiveView('generate')}
-            className={`mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'generate' ? 'bg-clay text-paper' : 'text-ink/70 hover:bg-sand'}`}
+            className={`mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'generate' ? 'bg-gold text-body' : 'text-paper/70 hover:bg-white/10'}`}
           >
             Gerar música
           </button>
@@ -79,16 +105,16 @@ export default function Dashboard() {
             <>
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <p className="section-label">Biblioteca</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Biblioteca</p>
                   <h1 className="mt-2 text-3xl font-semibold">Minhas músicas</h1>
-                  <p className="mt-2 text-ink/60">Acompanhe seus pedidos e futuras versões.</p>
+                  <p className="mt-2 text-paper/60">Acompanhe seus pedidos e futuras versões.</p>
                 </div>
-                <button onClick={() => setActiveView('generate')} className="btn-primary">
+                <button onClick={() => setActiveView('generate')} className="header-cta">
                   Gerar música
                 </button>
               </div>
 
-              <div className="mt-8 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-white/50">
+              <div className="mt-8 divide-y divide-[#24457a] overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] shadow-lg shadow-black/30">
                 {projects.map((project) => {
                   const versions = [...(project.music_versions ?? [])].sort(
                     (a, b) => a.version_number - b.version_number,
@@ -98,15 +124,15 @@ export default function Dashboard() {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                       <h2 className="font-medium">{project.title}</h2>
-                      <p className="mt-1 text-sm text-ink/55">Criada em {new Date(project.created_at).toLocaleDateString('pt-BR')}</p>
+                      <p className="mt-1 text-sm text-paper/55">Criada em {new Date(project.created_at).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <span className="rounded-full bg-sand px-3 py-1 text-xs font-medium text-ink/70">{STATUS_LABELS[project.status]}</span>
+                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-paper/80">{STATUS_LABELS[project.status]}</span>
                     </div>
                     {versions.length > 0 && (
-                      <div className="mt-4 grid gap-4 border-t border-ink/10 pt-4 sm:grid-cols-2">
+                      <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4 sm:grid-cols-2">
                         {versions.map((version) => (
-                          <div key={version.id} className="rounded-xl border border-ink/10 p-4">
-                            <p className="text-xs font-medium uppercase tracking-wide text-ink/45">Versão {version.version_number}</p>
+                          <div key={version.id} className="rounded-xl border border-[#24457a] bg-[#0a1a33] p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-paper/45">Versão {version.version_number}</p>
                             {version.audio_url ? (
                               <>
                                 <audio controls className="mt-3 w-full" src={version.audio_url} />
@@ -115,30 +141,30 @@ export default function Dashboard() {
                                   target="_blank"
                                   rel="noreferrer"
                                   download
-                                  className="mt-3 inline-flex text-sm font-semibold text-clay hover:underline"
+                                  className="mt-3 inline-flex text-sm font-semibold text-gold-light hover:underline"
                                 >
                                   Abrir ou baixar áudio
                                 </a>
                               </>
                             ) : version.status === 'failed' ? (
-                              <p className="mt-3 text-sm text-red-600">{version.error_message ?? 'Falha na geração.'}</p>
+                              <p className="mt-3 text-sm text-red-400">{version.error_message ?? 'Falha na geração.'}</p>
                             ) : (
-                              <p className="mt-3 text-sm text-ink/55">Gerando áudio…</p>
+                              <p className="mt-3 text-sm text-paper/55">Gerando áudio…</p>
                             )}
                           </div>
                         ))}
                       </div>
                     )}
                     {project.status === 'generating' && (
-                      <p className="mt-3 text-sm text-ink/55">A Suno está preparando o áudio. Esta lista atualiza automaticamente.</p>
+                      <p className="mt-3 text-sm text-paper/55">A Suno está preparando o áudio. Esta lista atualiza automaticamente.</p>
                     )}
                   </article>
                   )
                 })}
                 {projects.length === 0 && (
                   <div className="p-8 text-center">
-                    <p className="text-sm text-ink/55">Você ainda não criou nenhuma música.</p>
-                    <button onClick={() => setActiveView('generate')} className="mt-4 text-sm font-semibold text-clay hover:underline">
+                    <p className="text-sm text-paper/55">Você ainda não criou nenhuma música.</p>
+                    <button onClick={() => setActiveView('generate')} className="mt-4 text-sm font-semibold text-gold-light hover:underline">
                       Criar a primeira música
                     </button>
                   </div>
@@ -146,7 +172,7 @@ export default function Dashboard() {
               </div>
             </>
           ) : (
-            <MusicStudio embedded onCreated={loadProjects} />
+            <MusicStudio embedded onCreated={handleCreated} />
           )}
         </section>
       </div>

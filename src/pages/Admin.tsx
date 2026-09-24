@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+﻿import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
@@ -119,28 +119,29 @@ export default function Admin() {
   }
 
   return (
+    <div className="min-h-screen bg-[#111817] text-paper">
     <div className="container-page max-w-5xl py-12">
       <div className="flex items-center justify-between">
         <div>
-          <Link to="/" className="text-sm text-ink/50 hover:underline">
+          <Link to="/" className="text-sm text-paper/50 hover:underline">
             ← Voltar ao site
           </Link>
           <h1 className="mt-2 text-3xl font-semibold">Painel administrativo</h1>
         </div>
-        <button onClick={() => void signOut()} className="btn-secondary">
+        <button onClick={() => void signOut()} className="rounded-full border border-white/30 px-6 py-3 text-sm font-medium transition hover:border-white">
           Sair
         </button>
       </div>
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold">Nova composição</h2>
-        <form onSubmit={handleCreate} className="mt-4 grid gap-4 rounded-2xl border border-ink/10 p-6 md:grid-cols-2">
+        <form onSubmit={handleCreate} className="mt-4 grid gap-4 rounded-2xl border border-[#24457a] bg-[#0f2547] p-6 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className="text-sm font-medium">Título</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-ink/15 px-4 py-2.5 text-sm outline-none focus:border-clay"
+              className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-2.5 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold"
             />
           </div>
           <div className="md:col-span-2">
@@ -148,7 +149,7 @@ export default function Admin() {
             <input
               value={shortDescription}
               onChange={(e) => setShortDescription(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-ink/15 px-4 py-2.5 text-sm outline-none focus:border-clay"
+              className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-2.5 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold"
             />
           </div>
           <div className="md:col-span-2">
@@ -158,7 +159,7 @@ export default function Admin() {
               onChange={(e) => setStory(e.target.value)}
               rows={5}
               placeholder="Conte a vivência, a inspiração ou o momento ligado a esta canção."
-              className="mt-1 w-full rounded-xl border border-ink/15 px-4 py-2.5 text-sm outline-none focus:border-clay"
+              className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-2.5 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold"
             />
           </div>
           <div className="md:col-span-2">
@@ -167,7 +168,7 @@ export default function Admin() {
               value={lyrics}
               onChange={(e) => setLyrics(e.target.value)}
               rows={4}
-              className="mt-1 w-full rounded-xl border border-ink/15 px-4 py-2.5 text-sm outline-none focus:border-clay"
+              className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-2.5 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold"
             />
           </div>
           <div>
@@ -197,9 +198,9 @@ export default function Admin() {
             Marcar como destaque
           </label>
 
-          {formError && <p className="text-sm text-red-600 md:col-span-2">{formError}</p>}
+          {formError && <p className="text-sm text-red-400 md:col-span-2">{formError}</p>}
 
-          <button type="submit" disabled={saving} className="btn-primary md:col-span-2 w-fit">
+          <button type="submit" disabled={saving} className="header-cta w-fit disabled:opacity-60 md:col-span-2">
             {saving ? 'Salvando…' : 'Adicionar composição'}
           </button>
         </form>
@@ -208,25 +209,25 @@ export default function Admin() {
       <section className="mt-12">
         <h2 className="text-xl font-semibold">Composições cadastradas</h2>
         {loading ? (
-          <p className="mt-4 text-ink/50">Carregando…</p>
+          <p className="mt-4 text-paper/50">Carregando…</p>
         ) : (
-          <div className="mt-4 divide-y divide-ink/10 rounded-2xl border border-ink/10">
+          <div className="mt-4 divide-y divide-[#24457a] overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547]">
             {compositions.map((comp) => (
               <div key={comp.id} className="flex items-center justify-between gap-4 p-4">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{comp.title}</p>
-                  <p className="truncate text-sm text-ink/50">{comp.short_description}</p>
+                  <p className="truncate text-sm text-paper/50">{comp.short_description}</p>
                 </div>
                 <button
                   onClick={() => void handleDelete(comp.id)}
-                  className="shrink-0 text-sm font-medium text-red-600 hover:underline"
+                  className="shrink-0 text-sm font-medium text-red-400 hover:underline"
                 >
                   Excluir
                 </button>
               </div>
             ))}
             {compositions.length === 0 && (
-              <p className="p-4 text-sm text-ink/50">Nenhuma composição ainda.</p>
+              <p className="p-4 text-sm text-paper/50">Nenhuma composição ainda.</p>
             )}
           </div>
         )}
@@ -236,27 +237,27 @@ export default function Admin() {
         <h2 className="text-xl font-semibold">Envios de fãs pendentes</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {submissions.map((sub) => (
-            <div key={sub.id} className="rounded-2xl border border-ink/10 p-4">
+            <div key={sub.id} className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-4">
               <p className="text-sm font-semibold">{sub.display_name}</p>
-              {sub.message && <p className="mt-1 text-sm text-ink/60">{sub.message}</p>}
+              {sub.message && <p className="mt-1 text-sm text-paper/60">{sub.message}</p>}
               <a
                 href={sub.file_url}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 block truncate text-sm text-clay hover:underline"
+                className="mt-2 block truncate text-sm text-gold-light hover:underline"
               >
                 Ver arquivo ({sub.file_type})
               </a>
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => void handleModerate(sub.id, 'approved')}
-                  className="btn-primary px-4 py-1.5 text-xs"
+                  className="rounded-full bg-gold px-4 py-1.5 text-xs font-bold text-body transition hover:bg-gold-light"
                 >
                   Aprovar
                 </button>
                 <button
                   onClick={() => void handleModerate(sub.id, 'rejected')}
-                  className="btn-secondary px-4 py-1.5 text-xs"
+                  className="rounded-full border border-white/30 px-4 py-1.5 text-xs font-medium transition hover:border-white"
                 >
                   Rejeitar
                 </button>
@@ -264,10 +265,11 @@ export default function Admin() {
             </div>
           ))}
           {submissions.length === 0 && (
-            <p className="text-sm text-ink/50">Nenhum envio pendente.</p>
+            <p className="text-sm text-paper/50">Nenhum envio pendente.</p>
           )}
         </div>
       </section>
+    </div>
     </div>
   )
 }

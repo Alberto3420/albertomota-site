@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
 import type { Profile } from '../types/models'
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -75,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    // Navega antes de encerrar a sessão: senão o RequireAuth redireciona para /login.
+    navigate('/', { replace: true })
     await supabase.auth.signOut()
   }
 
