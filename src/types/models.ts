@@ -75,6 +75,7 @@ export interface MusicVersion {
   external_id: string | null
   clip_id: string | null
   audio_url: string | null
+  duration: number | null
   error_message: string | null
   created_at: string
 }

@@ -29,7 +29,12 @@ Deno.serve(async (request) => {
         const clip = clips[index]
         const { error: versionError } = await adminClient
           .from('music_versions')
-          .update({ status, audio_url: clip?.audio_url ?? null, clip_id: clip?.id ?? null })
+          .update({
+            status,
+            audio_url: clip?.audio_url ?? null,
+            clip_id: clip?.id ?? null,
+            ...(typeof clip?.duration === 'number' ? { duration: clip.duration } : {}),
+          })
           .eq('external_id', taskId)
           .eq('version_number', index + 1)
         if (versionError) throw versionError
