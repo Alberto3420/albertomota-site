@@ -65,6 +65,15 @@ export interface MusicProject {
   updated_at: string
 }
 
+export interface MusicPayment {
+  id: string
+  project_id: string
+  status: 'pending' | 'confirmed' | 'overdue' | 'cancelled' | 'refunded'
+  checkout_url: string | null
+  amount_cents: number
+  created_at: string
+}
+
 export interface MusicVersion {
   id: string
   project_id: string

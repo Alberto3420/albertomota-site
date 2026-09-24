@@ -28,6 +28,8 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
   const [title, setTitle] = useState('')
   const [melody, setMelody] = useState('')
   const [lyrics, setLyrics] = useState('')
+  const [cpf, setCpf] = useState('')
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +49,7 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
   }, [user?.id])
 
   useEffect(() => {
-    if (!projects.some((project) => project.status === 'generating')) return
+    if (!projects.some((project) => project.status === 'generating' || project.status === 'payment_pending')) return
     const timer = window.setInterval(() => void loadProjects(), 15000)
     return () => window.clearInterval(timer)
   }, [projects, user?.id])
@@ -56,6 +58,7 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
     event.preventDefault()
     setError(null)
     setMessage(null)
+    setPaymentUrl(null)
 
     if (!user || !title.trim() || !melody.trim() || !lyrics.trim()) {
       setError('Preencha o título, a melodia e a letra.')
@@ -64,11 +67,12 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
 
     setSaving(true)
     try {
-      const { error: generationError } = await supabase.functions.invoke('generate-music', {
+      const { data: created, error: generationError } = await supabase.functions.invoke('generate-music', {
         body: {
           title: title.trim(),
           melody: melody.trim(),
           lyrics: lyrics.trim(),
+          cpf: cpf.trim(),
         },
       })
       if (generationError) {
@@ -87,7 +91,12 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
       setTitle('')
       setMelody('')
       setLyrics('')
-      setMessage('Pedido enviado. A geração começou e aparecerá aqui quando o áudio estiver pronto.')
+      if (created?.paymentUrl) {
+        setPaymentUrl(created.paymentUrl)
+        setMessage('Pedido criado. Faça o pagamento para iniciar a geração; ela começa assim que o pagamento for confirmado.')
+      } else {
+        setMessage('Pedido enviado. A geração começou e aparecerá aqui quando o áudio estiver pronto.')
+      }
       await loadProjects()
       await onCreated?.()
     } catch (submissionError) {
@@ -132,14 +141,23 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
           <label className="text-sm font-medium" htmlFor="music-lyrics">Letra</label>
           <textarea id="music-lyrics" value={lyrics} onChange={(event) => setLyrics(event.target.value)} rows={7} className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-3 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold" placeholder="Cole ou escreva a letra da música..." />
         </div>
+        <div className="md:col-span-2 md:max-w-xs">
+          <label className="text-sm font-medium" htmlFor="music-cpf">CPF ou CNPJ (para o pagamento)</label>
+          <input id="music-cpf" value={cpf} onChange={(event) => setCpf(event.target.value)} inputMode="numeric" autoComplete="off" className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-3 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold" placeholder="Somente números" />
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-4 md:col-span-2">
-          <p className="text-sm text-paper/55">Primeira geração: R$ {(GENERATION_PRICE_CENTS / 100).toFixed(2).replace('.', ',')}</p>
+          <p className="text-sm text-paper/55">Valor por música: R$ {(GENERATION_PRICE_CENTS / 100).toFixed(2).replace('.', ',')} (Pix ou cartão)</p>
           <button type="submit" disabled={saving} className="header-cta disabled:opacity-60">
             {saving ? 'Criando pedido…' : 'Criar pedido de geração'}
           </button>
         </div>
         {error && <p className="text-sm text-red-400 md:col-span-2">{error}</p>}
         {message && <p className="text-sm text-emerald-400 md:col-span-2">{message}</p>}
+        {paymentUrl && (
+          <a href={paymentUrl} target="_blank" rel="noreferrer" className="header-cta w-fit md:col-span-2">
+            Pagar agora
+          </a>
+        )}
       </form>
 
       <section className="mt-12">
@@ -158,7 +176,7 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
                   </div>
                   <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-paper/80">{STATUS_LABELS[project.status]}</span>
                 </div>
-                {versions.length > 0 && (
+                {versions.length > 0 && project.status !== 'payment_pending' && (
                   <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4 sm:grid-cols-2">
                     {versions.map((version) => (
                       <div key={version.id} className="rounded-xl border border-[#24457a] bg-[#0a1a33] p-4">

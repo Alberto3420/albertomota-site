@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import MusicStudio from './MusicStudio'
-import type { MusicProject, MusicVersion } from '../types/models'
+import type { MusicPayment, MusicProject, MusicVersion } from '../types/models'
+
+type ProjectWithRelations = MusicProject & { music_versions: MusicVersion[]; music_payments?: MusicPayment[] }
 
 const STATUS_LABELS: Record<MusicProject['status'], string> = {
   draft: 'Rascunho',
@@ -22,7 +24,7 @@ function formatDuration(seconds: number) {
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const [activeView, setActiveView] = useState<'music' | 'generate'>('music')
-  const [projects, setProjects] = useState<Array<MusicProject & { music_versions: MusicVersion[] }>>([])
+  const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [credits, setCredits] = useState<number | null>(null)
   const [creditsError, setCreditsError] = useState(false)
 
@@ -30,11 +32,11 @@ export default function Dashboard() {
     if (!user) return
     const { data, error } = await supabase
       .from('music_projects')
-      .select('*, music_versions(*)')
+      .select('*, music_versions(*), music_payments(*)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
     if (!error) {
-      setProjects((data as Array<MusicProject & { music_versions: MusicVersion[] }>) ?? [])
+      setProjects((data as ProjectWithRelations[]) ?? [])
     }
   }
 
@@ -57,7 +59,7 @@ export default function Dashboard() {
   }, [user?.id])
 
   useEffect(() => {
-    if (!projects.some((project) => project.status === 'generating')) return
+    if (!projects.some((project) => project.status === 'generating' || project.status === 'payment_pending')) return
     const timer = window.setInterval(() => void loadProjects(), 15000)
     return () => window.clearInterval(timer)
   }, [projects, user?.id])
@@ -133,7 +135,7 @@ export default function Dashboard() {
                     </div>
                     <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-paper/80">{STATUS_LABELS[project.status]}</span>
                     </div>
-                    {versions.length > 0 && (
+                    {versions.length > 0 && project.status !== 'payment_pending' && (
                       <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4 sm:grid-cols-2">
                         {versions.map((version) => (
                           <div key={version.id} className="rounded-xl border border-[#24457a] bg-[#0a1a33] p-4">
@@ -175,6 +177,16 @@ export default function Dashboard() {
                     )}
                     {project.status === 'generating' && (
                       <p className="mt-3 text-sm text-paper/55">A Suno está preparando o áudio. Esta lista atualiza automaticamente.</p>
+                    )}
+                    {project.status === 'payment_pending' && (
+                      <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[#24457a] pt-4">
+                        <p className="text-sm text-paper/60">A geração começa assim que o pagamento for confirmado.</p>
+                        {project.music_payments?.[0]?.checkout_url && (
+                          <a href={project.music_payments[0].checkout_url} target="_blank" rel="noreferrer" className="header-cta min-h-0 px-5 py-2">
+                            Pagar agora
+                          </a>
+                        )}
+                      </div>
                     )}
                   </article>
                   )
