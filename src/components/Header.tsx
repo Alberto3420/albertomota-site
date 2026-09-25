@@ -45,10 +45,14 @@ export default function Header() {
               Painel admin
             </Link>
           )}
-          {user && (
+          {user ? (
             <button onClick={() => void signOut()} className="btn-secondary">
               Sair
             </button>
+          ) : (
+            <Link to="/login" className="header-cta">
+              Entrar
+            </Link>
           )}
         </div>
 
@@ -87,10 +91,14 @@ export default function Header() {
                 Meu painel
               </Link>
             )}
-            {user && (
+            {user ? (
               <button onClick={() => void signOut()} className="btn-secondary w-fit">
                 Sair
               </button>
+            ) : (
+              <Link to="/login" onClick={() => setOpen(false)} className="header-cta w-fit">
+                Entrar
+              </Link>
             )}
           </nav>
         </div>
