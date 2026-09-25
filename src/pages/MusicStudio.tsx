@@ -2,21 +2,9 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
-import MusicVersionCard from '../components/MusicVersionCard'
-import type { MusicProject, MusicVersion } from '../types/models'
-
-type MusicProjectWithVersions = MusicProject & { music_versions: MusicVersion[] }
+import MusicProjectItem, { type ProjectWithRelations } from '../components/MusicProjectItem'
 
 const GENERATION_PRICE_CENTS = 1990
-
-const STATUS_LABELS: Record<MusicProject['status'], string> = {
-  draft: 'Rascunho',
-  payment_pending: 'Aguardando pagamento',
-  queued: 'Na fila',
-  generating: 'Gerando',
-  ready: 'Pronta',
-  failed: 'Falhou',
-}
 
 interface MusicStudioProps {
   embedded?: boolean
@@ -25,7 +13,7 @@ interface MusicStudioProps {
 
 export default function MusicStudio({ embedded = false, onCreated }: MusicStudioProps) {
   const { user, signOut } = useAuth()
-  const [projects, setProjects] = useState<MusicProjectWithVersions[]>([])
+  const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [title, setTitle] = useState('')
   const [melody, setMelody] = useState('')
   const [lyrics, setLyrics] = useState('')
@@ -39,10 +27,16 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
     if (!user) return
     const { data } = await supabase
       .from('music_projects')
-      .select('*, music_versions(*)')
+      .select('*, music_versions(*), music_payments(*)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-    setProjects((data as MusicProjectWithVersions[]) ?? [])
+    setProjects((data as ProjectWithRelations[]) ?? [])
+  }
+
+  // Depois de excluir, atualiza esta lista e a do painel (quando o estúdio está embutido nele).
+  async function handleProjectsChanged() {
+    await loadProjects()
+    await onCreated?.()
   }
 
   useEffect(() => {
@@ -164,27 +158,7 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
       <section className="mt-12">
         <h2 className="text-xl font-semibold">Meus projetos</h2>
         <div className="mt-4 divide-y divide-[#24457a] overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] shadow-lg shadow-black/30">
-          {projects.map((project) => {
-            const versions = [...(project.music_versions ?? [])].sort(
-              (a, b) => a.version_number - b.version_number,
-            )
-            return (
-              <article key={project.id} className="p-5">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h3 className="font-medium">{project.title}</h3>
-                    <p className="mt-1 text-sm text-paper/55">Criado em {new Date(project.created_at).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-paper/80">{STATUS_LABELS[project.status]}</span>
-                </div>
-                {versions.length > 0 && project.status !== 'payment_pending' && (
-                  <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4 sm:grid-cols-2">
-                    {versions.map((version) => <MusicVersionCard key={version.id} version={version} />)}
-                  </div>
-                )}
-              </article>
-            )
-          })}
+          {projects.map((project) => <MusicProjectItem key={project.id} project={project} onChanged={handleProjectsChanged} />)}
           {projects.length === 0 && <p className="p-5 text-sm text-paper/50">Seus pedidos aparecerão aqui.</p>}
         </div>
       </section>

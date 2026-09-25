@@ -1,21 +1,9 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import MusicStudio from './MusicStudio'
-import MusicVersionCard from '../components/MusicVersionCard'
-import type { MusicPayment, MusicProject, MusicVersion } from '../types/models'
-
-type ProjectWithRelations = MusicProject & { music_versions: MusicVersion[]; music_payments?: MusicPayment[] }
-
-const STATUS_LABELS: Record<MusicProject['status'], string> = {
-  draft: 'Rascunho',
-  payment_pending: 'Aguardando pagamento',
-  queued: 'Na fila',
-  generating: 'Gerando',
-  ready: 'Pronta',
-  failed: 'Falhou',
-}
+import MusicProjectItem, { type ProjectWithRelations } from '../components/MusicProjectItem'
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
@@ -53,6 +41,30 @@ export default function Dashboard() {
   useEffect(() => {
     void loadCredits()
   }, [user?.id])
+
+  // Músicas prontas que ainda usam o link temporário da Suno: guarda uma cópia do áudio no Supabase.
+  const archiveAttempted = useRef(new Set<string>())
+  useEffect(() => {
+    const pending = projects
+      .flatMap((project) => project.music_versions ?? [])
+      .filter(
+        (version) =>
+          version.status === 'ready' &&
+          version.audio_url &&
+          !version.audio_url.includes('/storage/v1/object/public/musicas-geradas/') &&
+          !archiveAttempted.current.has(version.id),
+      )
+    if (pending.length === 0) return
+    pending.forEach((version) => archiveAttempted.current.add(version.id))
+    void (async () => {
+      let archived = false
+      for (const version of pending) {
+        const { data, error } = await supabase.functions.invoke('archive-audio', { body: { versionId: version.id } })
+        if (!error && data?.audioUrl) archived = true
+      }
+      if (archived) await loadProjects()
+    })()
+  }, [projects])
 
   useEffect(() => {
     if (!projects.some((project) => project.status === 'generating' || project.status === 'payment_pending')) return
@@ -118,40 +130,7 @@ export default function Dashboard() {
               </div>
 
               <div className="mt-8 divide-y divide-[#24457a] overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] shadow-lg shadow-black/30">
-                {projects.map((project) => {
-                  const versions = [...(project.music_versions ?? [])].sort(
-                    (a, b) => a.version_number - b.version_number,
-                  )
-                  return (
-                  <article key={project.id} className="p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <h2 className="font-medium">{project.title}</h2>
-                      <p className="mt-1 text-sm text-paper/55">Criada em {new Date(project.created_at).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-paper/80">{STATUS_LABELS[project.status]}</span>
-                    </div>
-                    {versions.length > 0 && project.status !== 'payment_pending' && (
-                      <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4 sm:grid-cols-2">
-                        {versions.map((version) => <MusicVersionCard key={version.id} version={version} />)}
-                      </div>
-                    )}
-                    {project.status === 'generating' && (
-                      <p className="mt-3 text-sm text-paper/55">A Suno está preparando o áudio. Esta lista atualiza automaticamente.</p>
-                    )}
-                    {project.status === 'payment_pending' && (
-                      <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[#24457a] pt-4">
-                        <p className="text-sm text-paper/60">A geração começa assim que o pagamento for confirmado.</p>
-                        {project.music_payments?.[0]?.checkout_url && (
-                          <a href={project.music_payments[0].checkout_url} target="_blank" rel="noreferrer" className="header-cta min-h-0 px-5 py-2">
-                            Pagar agora
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </article>
-                  )
-                })}
+                {projects.map((project) => <MusicProjectItem key={project.id} project={project} onChanged={loadProjects} />)}
                 {projects.length === 0 && (
                   <div className="p-8 text-center">
                     <p className="text-sm text-paper/55">Você ainda não criou nenhuma música.</p>

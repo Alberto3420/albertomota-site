@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { archiveVersionAudio } from '../_shared/archive.ts'
 
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
@@ -43,11 +44,34 @@ Deno.serve(async (request) => {
 
     const { data: versions, error: fetchError } = await adminClient
       .from('music_versions')
-      .select('project_id, status')
+      .select('id, project_id, status, audio_url')
       .eq('external_id', taskId)
     if (fetchError) throw fetchError
 
     const projectId = versions?.[0]?.project_id
+
+    // Música pronta: copia o áudio para o Supabase em segundo plano (o link da Suno expira).
+    if (!isError && callbackData.callbackType === 'complete' && projectId) {
+      const { data: project } = await adminClient
+        .from('music_projects')
+        .select('user_id')
+        .eq('id', projectId)
+        .single()
+      if (project) {
+        const archiveAll = Promise.all(
+          versions
+            .filter((version) => version.status === 'ready' && version.audio_url)
+            .map((version) =>
+              archiveVersionAudio(adminClient, version, project.user_id).catch((archiveError) =>
+                // Sem cópia a versão segue com o link da Suno; o painel tenta de novo depois.
+                console.error('Falha ao arquivar áudio da versão', version.id, archiveError),
+              ),
+            ),
+        )
+        // deno-lint-ignore no-explicit-any
+        ;(globalThis as any).EdgeRuntime?.waitUntil(archiveAll)
+      }
+    }
     if (projectId) {
       const projectStatus = versions.every((v) => v.status === 'ready')
         ? 'ready'
