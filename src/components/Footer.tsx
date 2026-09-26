@@ -13,7 +13,6 @@ export default function Footer() {
           <nav aria-label="Navegação do rodapé">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">Navegue</p>
             <div className="mt-5 flex flex-col gap-3 text-sm text-white/80">
-              <a href="#metodo" className="transition hover:text-gold-light">Método Alberto Mota</a>
               <a href="#composicoes" className="transition hover:text-gold-light">Composições</a>
               <a href="#comentarios" className="transition hover:text-gold-light">Comentários</a>
               <a href="#sobre" className="transition hover:text-gold-light">Sobre Alberto Mota</a>

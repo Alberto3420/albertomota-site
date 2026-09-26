@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { claimPlayback } from '../lib/singlePlayer'
 
 const ESTACAO_AUDIO_URL =
   'https://vszdpaithvzsuheaftek.supabase.co/storage/v1/object/public/arquivos/musicas/estacao.mp3'
@@ -104,7 +105,13 @@ export default function VideoSection() {
             </span>
             <p className="mt-1 font-[Georgia] text-3xl font-bold">Na estação</p>
           </div>
-          <audio ref={audioRef} src={ESTACAO_AUDIO_URL} onEnded={() => setPlaying(false)} />
+          <audio
+            ref={audioRef}
+            src={ESTACAO_AUDIO_URL}
+            onPlay={(event) => claimPlayback(event.currentTarget)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => setPlaying(false)}
+          />
         </div>
       </div>
     </section>

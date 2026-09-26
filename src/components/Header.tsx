@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 
 const NAV_LINKS = [
   { href: '#inicio', label: 'Início' },
-  { href: '#metodo', label: 'Método' },
   { href: '#composicoes', label: 'Composições' },
   { href: '#comentarios', label: 'Comentários' },
   { href: '#sobre', label: 'Sobre' },

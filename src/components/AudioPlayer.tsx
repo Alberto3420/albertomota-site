@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { claimPlayback } from '../lib/singlePlayer'
 
 export default function AudioPlayer({ src, title }: { src: string | null; title?: string }) {
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -97,6 +98,10 @@ export default function AudioPlayer({ src, title }: { src: string | null; title?
         src={src}
         autoPlay={false}
         preload="none"
+        onPlay={(event) => {
+          claimPlayback(event.currentTarget)
+          setPlaying(true)
+        }}
         onTimeUpdate={onTimeUpdate}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}

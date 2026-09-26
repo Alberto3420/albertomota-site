@@ -26,12 +26,6 @@ export default function Hero() {
             <a href="#composicoes" className="btn-primary">
               Ouvir composições
             </a>
-            <a
-              href="#metodo"
-              className="inline-flex items-center justify-center rounded-full border border-paper/50 px-6 py-3 text-sm font-medium text-paper transition hover:border-paper"
-            >
-              Conhecer o método
-            </a>
           </div>
         </div>
       </div>
