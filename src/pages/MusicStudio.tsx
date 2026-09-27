@@ -83,9 +83,6 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
         throw new Error(details)
       }
 
-      setTitle('')
-      setMelody('')
-      setLyrics('')
       if (created?.paymentUrl) {
         setPaymentUrl(created.paymentUrl)
         setMessage('Pedido criado. Faça o pagamento para iniciar a geração; ela começa assim que o pagamento for confirmado.')
