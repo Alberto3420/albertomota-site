@@ -17,6 +17,7 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
   const [title, setTitle] = useState('')
   const [melody, setMelody] = useState('')
   const [lyrics, setLyrics] = useState('')
+  const [lyricsExpanded, setLyricsExpanded] = useState(false)
   const [cpf, setCpf] = useState('')
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -130,8 +131,13 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
           <textarea id="music-melody" value={melody} onChange={(event) => setMelody(event.target.value)} rows={7} className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-3 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold" placeholder="Ex.: balada acústica, voz masculina, andamento lento, violão e cordas..." />
         </div>
         <div>
-          <label className="text-sm font-medium" htmlFor="music-lyrics">Letra</label>
-          <textarea id="music-lyrics" value={lyrics} onChange={(event) => setLyrics(event.target.value)} rows={7} className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-3 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold" placeholder="Cole ou escreva a letra da música..." />
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium" htmlFor="music-lyrics">Letra</label>
+            <button type="button" onClick={() => setLyricsExpanded((value) => !value)} className="text-xs text-gold hover:underline">
+              {lyricsExpanded ? '↙ Recolher' : '↗ Expandir'}
+            </button>
+          </div>
+          <textarea id="music-lyrics" value={lyrics} onChange={(event) => setLyrics(event.target.value)} onFocus={() => setLyricsExpanded(true)} rows={lyricsExpanded ? 24 : 7} className="mt-1 w-full rounded-xl border border-[#24457a] bg-[#0a1a33] px-4 py-3 text-sm text-paper outline-none placeholder:text-paper/35 focus:border-gold" placeholder="Cole ou escreva a letra da música..." />
         </div>
         <div className="md:col-span-2 md:max-w-xs">
           <label className="text-sm font-medium" htmlFor="music-cpf">CPF ou CNPJ (para o pagamento)</label>
