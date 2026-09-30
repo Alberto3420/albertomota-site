@@ -86,8 +86,8 @@ export default function CompositionsGrid() {
         {loading && <p className="mt-8 text-ink/50">Carregando composições…</p>}
 
         <div className="mt-10 divide-y divide-white/15 border-y border-white/15">
-          {compositions.map((composition, index) => (
-            <CompositionCard key={composition.id} composition={composition} index={index} />
+          {compositions.map((composition) => (
+            <CompositionCard key={composition.id} composition={composition} />
           ))}
         </div>
       </div>

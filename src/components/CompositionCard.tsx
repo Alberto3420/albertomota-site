@@ -1,34 +1,31 @@
 import type { Composition } from '../types/models'
 import AudioPlayer from './AudioPlayer'
 
-export default function CompositionCard({
-  composition,
-  index,
-}: {
-  composition: Composition
-  index: number
-}) {
+export default function CompositionCard({ composition }: { composition: Composition }) {
   return (
     <div
-      className={`grid gap-4 px-4 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[3rem_5rem_minmax(0,1fr)_13rem] md:items-center md:px-4 ${
+      className={`grid gap-4 px-4 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_13rem] md:items-center md:px-4 ${
         composition.is_featured ? 'border-l-4 border-gold bg-white/[0.06]' : ''
       }`}
     >
-      <span className="text-xl font-semibold text-gold">{String(index + 1).padStart(2, '0')}</span>
-      <div className="h-16 w-20 shrink-0 overflow-hidden rounded-sm bg-[#26302d]">
-          {composition.cover_url && (
-            <img
-              src={composition.cover_url}
-              alt={composition.title}
-              className="h-full w-full object-cover"
-            />
-          )}
-      </div>
       <div className="min-w-0">
-        <h3 className="truncate text-lg font-semibold">{composition.title}</h3>
-        {composition.short_description && (
-          <p className="mt-1 line-clamp-2 text-sm text-paper/70">{composition.short_description}</p>
-        )}
+        <h3 className="text-xl font-semibold text-gold">{composition.title}</h3>
+        <div className="mt-3 flex items-start gap-4">
+          <div className="h-16 w-20 shrink-0 overflow-hidden rounded-sm bg-[#26302d]">
+            {composition.cover_url && (
+              <img
+                src={composition.cover_url}
+                alt={composition.title}
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+          {composition.short_description && (
+            <p className="line-clamp-3 min-w-0 flex-1 text-sm text-paper/70">
+              {composition.short_description}
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-start gap-4 md:justify-end">
         {composition.is_featured && (
