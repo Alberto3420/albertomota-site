@@ -1,13 +1,15 @@
 ﻿import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
-import MusicStudio from './MusicStudio'
+import MusicStudio, { type StudioDraft } from './MusicStudio'
 import MusicProjectItem, { type ProjectWithRelations } from '../components/MusicProjectItem'
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
-  const [activeView, setActiveView] = useState<'music' | 'generate'>('music')
+  const location = useLocation()
+  const draft = (location.state as { draft?: StudioDraft } | null)?.draft
+  const [activeView, setActiveView] = useState<'music' | 'generate'>(draft ? 'generate' : 'music')
   const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [credits, setCredits] = useState<number | null>(null)
   const [creditsError, setCreditsError] = useState(false)
@@ -113,6 +115,9 @@ export default function Dashboard() {
           >
             Gerar música
           </button>
+          <Link to="/rascunhos" className="mt-1 block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-paper/70 transition hover:bg-white/10">
+            Rascunhos
+          </Link>
         </nav>
 
         <section>
@@ -142,7 +147,7 @@ export default function Dashboard() {
               </div>
             </>
           ) : (
-            <MusicStudio embedded onCreated={handleCreated} />
+            <MusicStudio embedded onCreated={handleCreated} initialDraft={draft} />
           )}
         </section>
       </div>

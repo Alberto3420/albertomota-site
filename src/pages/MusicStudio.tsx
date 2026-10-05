@@ -6,17 +6,25 @@ import MusicProjectItem, { type ProjectWithRelations } from '../components/Music
 
 const GENERATION_PRICE_CENTS = 1990
 
+export interface StudioDraft {
+  id: string
+  title: string
+  melody: string
+  lyrics: string
+}
+
 interface MusicStudioProps {
   embedded?: boolean
   onCreated?: () => void | Promise<void>
+  initialDraft?: StudioDraft
 }
 
-export default function MusicStudio({ embedded = false, onCreated }: MusicStudioProps) {
+export default function MusicStudio({ embedded = false, onCreated, initialDraft }: MusicStudioProps) {
   const { user, signOut } = useAuth()
   const [projects, setProjects] = useState<ProjectWithRelations[]>([])
-  const [title, setTitle] = useState('')
-  const [melody, setMelody] = useState('')
-  const [lyrics, setLyrics] = useState('')
+  const [title, setTitle] = useState(initialDraft?.title ?? '')
+  const [melody, setMelody] = useState(initialDraft?.melody ?? '')
+  const [lyrics, setLyrics] = useState(initialDraft?.lyrics ?? '')
   const [lyricsExpanded, setLyricsExpanded] = useState(false)
   const [cpf, setCpf] = useState('')
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
@@ -89,6 +97,9 @@ export default function MusicStudio({ embedded = false, onCreated }: MusicStudio
         setMessage('Pedido criado. Faça o pagamento para iniciar a geração; ela começa assim que o pagamento for confirmado.')
       } else {
         setMessage('Pedido enviado. A geração começou e aparecerá aqui quando o áudio estiver pronto.')
+      }
+      if (initialDraft) {
+        await supabase.from('music_drafts').update({ used_at: new Date().toISOString() }).eq('id', initialDraft.id)
       }
       await loadProjects()
       await onCreated?.()
