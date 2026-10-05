@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import ConfirmDialog from '../components/ConfirmDialog'
 import LyricsEditor from '../components/LyricsEditor'
+import ManualPanel from '../components/ManualPanel'
 
 interface MusicDraft {
   id: string
@@ -43,6 +44,7 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
   const [melody, setMelody] = useState(draft.melody)
   const [lyrics, setLyrics] = useState(draft.lyrics)
   const [saveState, setSaveState] = useState<SaveState>('saved')
+  const [showManual, setShowManual] = useState(false)
   const latest = useRef({ title, melody, lyrics })
   const dirty = useRef(false)
   const timer = useRef<number>()
@@ -90,12 +92,16 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
 
   return (
     <>
-    <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-6 print:hidden">
+    <div className={`grid items-start gap-6 print:hidden ${showManual ? 'xl:grid-cols-[1fr_22rem]' : ''}`}>
+    <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className={`text-xs ${saveState === 'error' ? 'text-red-400' : 'text-paper/50'}`} aria-live="polite">
           {SAVE_LABEL[saveState]}
         </span>
         <div className="flex flex-wrap gap-2">
+          <button onClick={() => setShowManual((value) => !value)} aria-pressed={showManual} className={`rounded-full border px-4 py-2 text-sm transition hover:border-gold hover:text-gold ${showManual ? 'border-gold text-gold' : 'border-white/30'}`}>
+            Manual
+          </button>
           <button onClick={() => window.print()} className="rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-gold hover:text-gold">
             Imprimir / salvar PDF
           </button>
@@ -124,6 +130,8 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
           </div>
         </div>
       </div>
+    </div>
+    {showManual && <ManualPanel lyrics={lyrics} />}
     </div>
 
     <article className="hidden text-black print:block">
