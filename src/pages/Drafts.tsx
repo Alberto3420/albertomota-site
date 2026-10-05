@@ -89,12 +89,16 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-6">
+    <>
+    <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-6 print:hidden">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className={`text-xs ${saveState === 'error' ? 'text-red-400' : 'text-paper/50'}`} aria-live="polite">
           {SAVE_LABEL[saveState]}
         </span>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => window.print()} className="rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-gold hover:text-gold">
+            Imprimir / salvar PDF
+          </button>
           <button onClick={() => onDelete(draft)} className="rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-red-400 hover:text-red-400">
             Excluir
           </button>
@@ -121,6 +125,15 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
         </div>
       </div>
     </div>
+
+    <article className="hidden text-black print:block">
+      <h1 className="text-3xl font-bold">{title.trim() || 'Sem título'}</h1>
+      {melody.trim() && (
+        <p className="mt-3 text-sm italic text-gray-700"><strong className="not-italic">Direção musical:</strong> {melody}</p>
+      )}
+      <pre className="mt-6 whitespace-pre-wrap font-sans text-base leading-7">{lyrics}</pre>
+    </article>
+    </>
   )
 }
 
@@ -191,8 +204,8 @@ export default function Drafts() {
   const selected = drafts.find((item) => item.id === selectedId) ?? null
 
   return (
-    <main className="min-h-screen bg-[#111817] text-paper">
-      <header className="border-b border-white/10 bg-navy text-white">
+    <main className="min-h-screen bg-[#111817] text-paper print:bg-white print:text-black">
+      <header className="border-b border-white/10 bg-navy text-white print:hidden">
         <div className="container-page flex min-h-20 items-center justify-between gap-4">
           <div>
             <Link to="/dashboard" className="text-sm text-white/60 hover:text-white">← Voltar ao painel</Link>
@@ -207,8 +220,8 @@ export default function Drafts() {
         </div>
       </header>
 
-      <div className="container-page py-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="container-page py-10 print:py-0">
+        <div className="flex flex-wrap items-end justify-between gap-4 print:hidden">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Caderno de composição</p>
             <h1 className="mt-2 text-3xl font-semibold">Meus rascunhos</h1>
@@ -227,8 +240,8 @@ export default function Drafts() {
             <button onClick={() => void handleNew()} className="mt-4 text-sm font-semibold text-gold-light hover:underline">Criar o primeiro rascunho</button>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 lg:grid-cols-[18rem_1fr]">
-            <ul className="self-start overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547]">
+          <div className="mt-8 grid gap-6 lg:grid-cols-[18rem_1fr] print:block">
+            <ul className="self-start overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] print:hidden">
               {drafts.map((item) => (
                 <li key={item.id} className="border-b border-[#24457a] last:border-b-0">
                   <button
