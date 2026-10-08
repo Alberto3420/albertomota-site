@@ -134,14 +134,14 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <div className="mt-8 grid items-start gap-5 md:grid-cols-2 2xl:grid-cols-3">
+              <div className="mt-8 grid items-start gap-5 md:grid-cols-2">
                 {projects.map((project) => (
                   <div key={project.id} className="overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] shadow-lg shadow-black/30">
                     <MusicProjectItem project={project} onChanged={loadProjects} />
                   </div>
                 ))}
                 {projects.length === 0 && (
-                  <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-8 text-center md:col-span-2 2xl:col-span-3">
+                  <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-8 text-center md:col-span-2">
                     <p className="text-sm text-paper/55">Você ainda não criou nenhuma música.</p>
                     <button onClick={() => setActiveView('generate')} className="mt-4 text-sm font-semibold text-gold-light hover:underline">
                       Criar a primeira música
