@@ -81,7 +81,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-[#111817] text-paper">
       <header className="border-b border-white/10 bg-navy text-white">
-        <div className="container-page flex min-h-20 items-center justify-between gap-4">
+        <div className="flex min-h-20 w-full items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
           <div>
             <Link to="/" className="text-sm text-white/60 hover:text-white">← Voltar ao site</Link>
             <p className="mt-1 font-semibold">Meu painel</p>
@@ -101,7 +101,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="container-page grid gap-8 py-10 lg:grid-cols-[15rem_1fr]">
+      <div className="grid w-full gap-8 px-4 py-10 sm:px-8 lg:grid-cols-[15rem_1fr] lg:px-12">
         <nav className="self-start rounded-2xl border border-white/10 bg-white/5 p-2" aria-label="Menu do painel">
           <button
             onClick={() => setActiveView('music')}
@@ -120,7 +120,7 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        <section>
+        <section className="min-w-0">
           {activeView === 'music' ? (
             <>
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -134,10 +134,14 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <div className="mt-8 divide-y divide-[#24457a] overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] shadow-lg shadow-black/30">
-                {projects.map((project) => <MusicProjectItem key={project.id} project={project} onChanged={loadProjects} />)}
+              <div className="mt-8 grid items-start gap-5 md:grid-cols-2 2xl:grid-cols-3">
+                {projects.map((project) => (
+                  <div key={project.id} className="overflow-hidden rounded-2xl border border-[#24457a] bg-[#0f2547] shadow-lg shadow-black/30">
+                    <MusicProjectItem project={project} onChanged={loadProjects} />
+                  </div>
+                ))}
                 {projects.length === 0 && (
-                  <div className="p-8 text-center">
+                  <div className="rounded-2xl border border-[#24457a] bg-[#0f2547] p-8 text-center md:col-span-2 2xl:col-span-3">
                     <p className="text-sm text-paper/55">Você ainda não criou nenhuma música.</p>
                     <button onClick={() => setActiveView('generate')} className="mt-4 text-sm font-semibold text-gold-light hover:underline">
                       Criar a primeira música
