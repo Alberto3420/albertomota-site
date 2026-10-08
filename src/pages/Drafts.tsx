@@ -105,9 +105,6 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
           <button onClick={() => window.print()} className="rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-gold hover:text-gold">
             Imprimir / salvar PDF
           </button>
-          <button onClick={() => onDelete(draft)} className="rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-red-400 hover:text-red-400">
-            Excluir
-          </button>
           <button onClick={() => void handleUse()} className="header-cta">
             Usar para gerar música
           </button>
@@ -117,7 +114,12 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
       <div className="mt-5 grid gap-5">
         <div>
           <label className="text-sm font-medium" htmlFor="draft-title">Título</label>
-          <input id="draft-title" value={title} onChange={(event) => { setTitle(event.target.value); edit({ title: event.target.value }) }} className={inputClass} placeholder="Ex.: Quando Penso em Voltar" />
+          <div className="mt-1 flex items-center gap-3">
+            <input id="draft-title" value={title} onChange={(event) => { setTitle(event.target.value); edit({ title: event.target.value }) }} className={`${inputClass} !mt-0 flex-1`} placeholder="Ex.: Quando Penso em Voltar" />
+            <button onClick={() => onDelete(draft)} className="shrink-0 rounded-full border border-white/30 px-4 py-2 text-sm transition hover:border-red-400 hover:text-red-400">
+              Excluir
+            </button>
+          </div>
         </div>
         <div>
           <label className="text-sm font-medium" htmlFor="draft-melody">Melodia e direção musical</label>
