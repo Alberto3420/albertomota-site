@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { archiveVersionAudio } from '../_shared/archive.ts'
+import { syncVersionLyrics } from '../_shared/lyricsSync.ts'
 
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
@@ -44,7 +45,7 @@ Deno.serve(async (request) => {
 
     const { data: versions, error: fetchError } = await adminClient
       .from('music_versions')
-      .select('id, project_id, status, audio_url')
+      .select('id, project_id, status, audio_url, external_id, clip_id')
       .eq('external_id', taskId)
     if (fetchError) throw fetchError
 
@@ -61,12 +62,16 @@ Deno.serve(async (request) => {
         const archiveAll = Promise.all(
           versions
             .filter((version) => version.status === 'ready' && version.audio_url)
-            .map((version) =>
-              archiveVersionAudio(adminClient, version, project.user_id).catch((archiveError) =>
+            .map(async (version) => {
+              await archiveVersionAudio(adminClient, version, project.user_id).catch((archiveError) =>
                 // Sem cópia a versão segue com o link da Suno; o painel tenta de novo depois.
                 console.error('Falha ao arquivar áudio da versão', version.id, archiveError),
-              ),
-            ),
+              )
+              // Letra sincronizada; se falhar, o botão no painel busca de novo.
+              await syncVersionLyrics(adminClient, version).catch((syncError) =>
+                console.error('Falha ao buscar letra sincronizada da versão', version.id, syncError),
+              )
+            }),
         )
         // deno-lint-ignore no-explicit-any
         ;(globalThis as any).EdgeRuntime?.waitUntil(archiveAll)

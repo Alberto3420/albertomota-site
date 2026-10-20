@@ -74,6 +74,16 @@ export interface MusicPayment {
   created_at: string
 }
 
+export interface SyncedWord {
+  w: string
+  s: number
+  e: number
+}
+
+export interface SyncedLyrics {
+  lines: SyncedWord[][]
+}
+
 export interface MusicVersion {
   id: string
   project_id: string
@@ -85,6 +95,7 @@ export interface MusicVersion {
   clip_id: string | null
   audio_url: string | null
   duration: number | null
+  aligned_lyrics?: SyncedLyrics | null
   error_message: string | null
   created_at: string
 }

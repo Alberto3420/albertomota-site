@@ -1,4 +1,5 @@
 import CopyButton from './CopyButton'
+import SyncedLyrics from './SyncedLyrics'
 import type { MusicVersion } from '../types/models'
 
 function formatDuration(seconds: number) {
@@ -18,7 +19,7 @@ export default function MusicVersionCard({ version }: { version: MusicVersion })
       </p>
       {version.audio_url ? (
         <>
-          <audio controls className="mt-3 w-full" src={version.audio_url} />
+          <SyncedLyrics version={version} />
           <a
             href={version.audio_url}
             target="_blank"
