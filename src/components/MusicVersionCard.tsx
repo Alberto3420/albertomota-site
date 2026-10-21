@@ -12,7 +12,7 @@ function formatDuration(seconds: number) {
 export default function MusicVersionCard({ version }: { version: MusicVersion }) {
   const { isAdmin: profileIsAdmin, user } = useAuth()
   // profiles pode não ter is_admin; o servidor confere de novo (create-video) pela lista FREE_EMAILS.
-  const isAdmin = profileIsAdmin || user?.email?.toLowerCase() === 'albertomota16@gmail.com'
+  const isAdmin = profileIsAdmin || user?.email?.toLowerCase() === 'omegasist1516@gmail.com'
   const hasText =!!(version.melody || version.lyrics)
   const both = `MELODIA:\n${version.melody ?? ''}\n\nLETRA:\n${version.lyrics ?? ''}`
 
