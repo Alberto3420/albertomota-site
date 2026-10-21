@@ -104,7 +104,13 @@ Deno.serve(async (request) => {
     if (result.code !== 200) throw new Error(result.msg ?? 'Não foi possível consultar o vídeo.')
     const videoUrl = result.data?.response?.videoUrl ?? null
     if (videoUrl) await adminClient.from('music_versions').update({ video_url: videoUrl }).eq('id', version.id)
-    return json({ status: result.data?.successFlag ?? 'PENDING', videoUrl })
+    const status = result.data?.successFlag ?? 'PENDING'
+    console.log('Consulta de vídeo da Suno:', JSON.stringify(result.data))
+    // Pedido que falhou: descarta, para que um novo clique faça outro pedido.
+    if (status !== 'PENDING' && status !== 'SUCCESS') {
+      await adminClient.from('music_versions').update({ video_task_id: null }).eq('id', version.id)
+    }
+    return json({ status, videoUrl, detail: result.data?.errorMessage ?? result.data?.errorCode ?? null })
   } catch (error) {
     return json({ error: error instanceof Error ? error.message : 'Erro interno' }, 400)
   }

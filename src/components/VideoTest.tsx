@@ -24,7 +24,9 @@ export default function VideoTest({ versionId, existingUrl }: { versionId: strin
           setVideoUrl(data.videoUrl)
           setPhase('done')
         } else if (data.status !== 'PENDING') {
-          throw new Error(`A Suno não conseguiu gerar o vídeo (${data.status}).`)
+          throw new Error(
+            `A Suno não conseguiu gerar o vídeo (${data.status}${data.detail ? `: ${data.detail}` : ''}).`,
+          )
         } else if (attempt >= 60) {
           throw new Error('Demorou demais. Clique de novo mais tarde (não cobra de novo).')
         } else {
