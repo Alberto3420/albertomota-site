@@ -101,10 +101,12 @@ export default function SyncedLyrics({ version }: { version: MusicVersion }) {
     if (audio.paused) void audio.play()
   }
 
-  async function loadLyrics() {
+  async function loadLyrics(force = false) {
     setLoading(true)
     setError(null)
-    const { data, error: invokeError } = await supabase.functions.invoke('sync-lyrics', { body: { versionId: version.id } })
+    const { data, error: invokeError } = await supabase.functions.invoke('sync-lyrics', {
+      body: { versionId: version.id, force },
+    })
     setLoading(false)
     if (invokeError || data?.error) {
       setError('Não foi possível buscar a letra sincronizada agora. Tente de novo em instantes.')
@@ -154,6 +156,15 @@ export default function SyncedLyrics({ version }: { version: MusicVersion }) {
               })}
             </p>
           ))}
+          <button
+            type="button"
+            onClick={() => void loadLyrics(true)}
+            disabled={loading}
+            className="mt-2 text-xs text-paper/50 hover:underline disabled:opacity-60"
+          >
+            {loading ? 'Atualizando…' : 'Atualizar letra sincronizada'}
+          </button>
+          {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
         </div>
       ) : (
         <div className="mt-3">

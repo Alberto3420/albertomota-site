@@ -27,7 +27,7 @@ Deno.serve(async (request) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser()
     if (userError || !user) throw new Error('Usuário não autenticado.')
 
-    const { versionId } = await request.json()
+    const { versionId, force } = await request.json()
     if (!versionId) throw new Error('Versão não informada.')
 
     const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -41,7 +41,7 @@ Deno.serve(async (request) => {
     const owner = (version.music_projects as unknown as { user_id: string }).user_id
     if (owner !== user.id) throw new Error('Versão não encontrada.')
     if (version.status !== 'ready') throw new Error('A música ainda não está pronta.')
-    if (version.aligned_lyrics) return json({ alignedLyrics: version.aligned_lyrics })
+    if (version.aligned_lyrics && !force) return json({ alignedLyrics: version.aligned_lyrics })
 
     const alignedLyrics = await syncVersionLyrics(adminClient, version)
     return json({ alignedLyrics })

@@ -27,8 +27,16 @@ export function buildSyncedLyrics(alignedWords: AlignedWord[]): SyncedLyrics {
     if (lines[lines.length - 1].length > 0) lines.push([])
   }
 
+  // Marcações como "[Intro | soft guitar]" podem vir quebradas em várias palavras:
+  // acompanha os colchetes entre uma palavra e outra.
+  let bracketDepth = 0
   alignedWords.forEach((item, index) => {
-    const cleaned = String(item.word ?? '').replace(/\[[^\]]*\]/g, '')
+    let cleaned = ''
+    for (const char of String(item.word ?? '')) {
+      if (char === '[') bracketDepth += 1
+      else if (char === ']') bracketDepth = Math.max(0, bracketDepth - 1)
+      else if (bracketDepth === 0) cleaned += char
+    }
     const parts = cleaned.split('\n')
     parts.forEach((part, partIndex) => {
       if (partIndex > 0) newLine()

@@ -30,8 +30,14 @@ Deno.serve(async (request) => {
     if (userError || !user) throw new Error('Usuário não autenticado.')
 
     const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const { data: profile } = await adminClient.from('profiles').select('is_admin').eq('id', user.id).single()
-    if (!profile?.is_admin) throw new Error('Recurso em teste, disponível só para o administrador.')
+    // Administrador = e-mail da lista FREE_EMAILS (profiles pode não ter a coluna is_admin).
+    const allowedEmails = (Deno.env.get('FREE_EMAILS') ?? '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+    if (!user.email || !allowedEmails.includes(user.email.toLowerCase())) {
+      throw new Error('Recurso em teste, disponível só para o administrador.')
+    }
 
     const { versionId, action } = await request.json()
     if (!versionId) throw new Error('Versão não informada.')
