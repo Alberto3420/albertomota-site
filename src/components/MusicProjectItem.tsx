@@ -88,7 +88,7 @@ export default function MusicProjectItem({
       </div>
 
       {versions.length > 0 && project.status !== 'payment_pending' && (
-        <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 border-t border-[#24457a] pt-4">
           {versions.map((version) => <MusicVersionCard key={version.id} version={version} />)}
         </div>
       )}

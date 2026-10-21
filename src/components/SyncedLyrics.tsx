@@ -126,7 +126,7 @@ export default function SyncedLyrics({ version }: { version: MusicVersion }) {
       {lyrics ? (
         <div
           ref={containerRef}
-          className="relative mt-3 max-h-64 overflow-y-auto rounded-lg border border-[#24457a] bg-[#0f2547] px-4 py-4 text-center"
+          className="relative mt-3 max-h-96 overflow-y-auto rounded-lg border border-[#24457a] bg-[#0f2547] px-6 py-5 text-center"
           aria-label="Letra sincronizada"
         >
           {lyrics.lines.map((line, lineIndex) => (
@@ -135,7 +135,7 @@ export default function SyncedLyrics({ version }: { version: MusicVersion }) {
               ref={(element) => {
                 lineRefs.current[lineIndex] = element
               }}
-              className={`py-1 text-base leading-snug transition-opacity ${
+              className={`py-1 text-lg leading-snug transition-opacity ${
                 active?.line === lineIndex ? 'opacity-100' : 'opacity-60'
               }`}
             >
