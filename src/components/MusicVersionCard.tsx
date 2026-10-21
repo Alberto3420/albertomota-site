@@ -1,5 +1,7 @@
 import CopyButton from './CopyButton'
 import SyncedLyrics from './SyncedLyrics'
+import VideoTest from './VideoTest'
+import { useAuth } from '../context/AuthContext'
 import type { MusicVersion } from '../types/models'
 
 function formatDuration(seconds: number) {
@@ -8,7 +10,8 @@ function formatDuration(seconds: number) {
 }
 
 export default function MusicVersionCard({ version }: { version: MusicVersion }) {
-  const hasText = !!(version.melody || version.lyrics)
+  const { isAdmin } = useAuth()
+  const hasText =!!(version.melody || version.lyrics)
   const both = `MELODIA:\n${version.melody ?? ''}\n\nLETRA:\n${version.lyrics ?? ''}`
 
   return (
@@ -20,6 +23,7 @@ export default function MusicVersionCard({ version }: { version: MusicVersion })
       {version.audio_url ? (
         <>
           <SyncedLyrics version={version} />
+          {isAdmin && version.status === 'ready' && <VideoTest versionId={version.id} />}
           <a
             href={version.audio_url}
             target="_blank"

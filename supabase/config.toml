@@ -3,5 +3,8 @@ project_id = "vszdpaithvzsuheaftek"
 [functions.suno-callback]
 verify_jwt = false
 
+[functions.video-callback]
+verify_jwt = false
+
 [functions.asaas-webhook]
 verify_jwt = false
