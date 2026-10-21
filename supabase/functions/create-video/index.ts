@@ -44,7 +44,7 @@ Deno.serve(async (request) => {
 
     const { data: version, error } = await adminClient
       .from('music_versions')
-      .select('id, external_id, clip_id, status, music_projects!inner(user_id)')
+      .select('id, external_id, clip_id, status, video_task_id, video_url, music_projects!inner(user_id)')
       .eq('id', versionId)
       .single()
     if (error || !version) throw new Error('Versão não encontrada.')
@@ -60,6 +60,9 @@ Deno.serve(async (request) => {
     const headers = { Authorization: `Bearer ${sunoApiKey}`, 'Content-Type': 'application/json' }
 
     if (action === 'start') {
+      // Já tem pedido de vídeo desta versão: não cobra de novo, só segue consultando.
+      if (version.video_url || version.video_task_id) return json({ started: true, alreadyExists: true })
+
       const response = await fetch(`${SUNO_API}/generate`, {
         method: 'POST',
         headers,
@@ -76,16 +79,32 @@ Deno.serve(async (request) => {
       if (result.code !== 200 && result.code !== 409) {
         throw new Error(result.msg ?? `A Suno recusou o pedido de vídeo (${response.status}).`)
       }
+      const videoTaskId = result.data?.taskId
+      if (!videoTaskId) {
+        throw new Error(
+          result.code === 409
+            ? 'A Suno diz que o vídeo desta faixa já existe, mas não informou o identificador dele.'
+            : 'A Suno não devolveu o identificador do vídeo.',
+        )
+      }
+      const { error: saveError } = await adminClient
+        .from('music_versions')
+        .update({ video_task_id: videoTaskId })
+        .eq('id', version.id)
+      if (saveError) throw saveError
       return json({ started: true, alreadyExists: result.code === 409 })
     }
 
-    const response = await fetch(`${SUNO_API}/record-info?taskId=${encodeURIComponent(version.external_id)}`, { headers })
+    if (version.video_url) return json({ status: 'SUCCESS', videoUrl: version.video_url })
+    if (!version.video_task_id) throw new Error('Nenhum vídeo foi pedido para esta versão.')
+
+    // A consulta usa o id devolvido pelo pedido de vídeo, não o id da música.
+    const response = await fetch(`${SUNO_API}/record-info?taskId=${encodeURIComponent(version.video_task_id)}`, { headers })
     const result = await response.json()
     if (result.code !== 200) throw new Error(result.msg ?? 'Não foi possível consultar o vídeo.')
-    return json({
-      status: result.data?.successFlag ?? 'PENDING',
-      videoUrl: result.data?.response?.videoUrl ?? null,
-    })
+    const videoUrl = result.data?.response?.videoUrl ?? null
+    if (videoUrl) await adminClient.from('music_versions').update({ video_url: videoUrl }).eq('id', version.id)
+    return json({ status: result.data?.successFlag ?? 'PENDING', videoUrl })
   } catch (error) {
     return json({ error: error instanceof Error ? error.message : 'Erro interno' }, 400)
   }

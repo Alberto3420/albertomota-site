@@ -25,7 +25,7 @@ export default function MusicVersionCard({ version }: { version: MusicVersion })
       {version.audio_url ? (
         <>
           <SyncedLyrics version={version} />
-          {isAdmin && version.status === 'ready' && <VideoTest versionId={version.id} />}
+          {isAdmin && version.status === 'ready' && <VideoTest versionId={version.id} existingUrl={version.video_url} />}
           <a
             href={version.audio_url}
             target="_blank"

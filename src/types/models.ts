@@ -96,6 +96,7 @@ export interface MusicVersion {
   audio_url: string | null
   duration: number | null
   aligned_lyrics?: SyncedLyrics | null
+  video_url?: string | null
   error_message: string | null
   created_at: string
 }

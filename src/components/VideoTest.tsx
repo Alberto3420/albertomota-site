@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
 // TESTE (só admin): gera o vídeo da Suno para esta versão e mostra o link quando ficar pronto.
-export default function VideoTest({ versionId }: { versionId: string }) {
-  const [phase, setPhase] = useState<'idle' | 'working' | 'done' | 'error'>('idle')
-  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+export default function VideoTest({ versionId, existingUrl }: { versionId: string; existingUrl?: string | null }) {
+  const [phase, setPhase] = useState<'idle' | 'working' | 'done' | 'error'>(existingUrl ? 'done' : 'idle')
+  const [videoUrl, setVideoUrl] = useState<string | null>(existingUrl ?? null)
   const [message, setMessage] = useState<string | null>(null)
   const timer = useRef<number>()
 
