@@ -118,6 +118,11 @@ export default function Dashboard() {
           <Link to="/rascunhos" className="mt-1 block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-paper/70 transition hover:bg-white/10">
             Rascunhos
           </Link>
+          {user?.email?.toLowerCase() === 'omegasist1516@gmail.com' && (
+            <Link to="/romance" className="mt-1 block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-paper/70 transition hover:bg-white/10">
+              Romance
+            </Link>
+          )}
         </nav>
 
         <section className="min-w-0">

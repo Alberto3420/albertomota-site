@@ -7,6 +7,7 @@ import RequireAuth from './components/RequireAuth'
 import MusicStudio from './pages/MusicStudio'
 import Dashboard from './pages/Dashboard'
 import Drafts from './pages/Drafts'
+import Romance from './pages/Romance'
 
 export default function App() {
   return (
@@ -26,6 +27,14 @@ export default function App() {
         element={
           <RequireAuth>
             <Drafts />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/romance"
+        element={
+          <RequireAuth>
+            <Romance />
           </RequireAuth>
         }
       />
