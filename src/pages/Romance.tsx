@@ -6,16 +6,20 @@ import ConfirmDialog from '../components/ConfirmDialog'
 
 export const ROMANCE_OWNER_EMAIL = 'omegasist1516@gmail.com'
 
-type Row = { id: string } & Record<string, string | number | null>
+export type Row = { id: string } & Record<string, string | number | null>
 type SaveState = 'saved' | 'dirty' | 'saving' | 'error'
-type TableName = 'novels' | 'novel_chapters' | 'novel_characters' | 'novel_notes'
+type TableName = string
 
-interface FieldDef {
+export interface FieldDef {
   key: string
   label: string
   type: 'text' | 'textarea' | 'select' | 'number'
   rows?: number
   options?: string[]
+  /** Opções com valor diferente do rótulo (ex.: ids). */
+  choices?: { value: string; label: string }[]
+  /** Grava '' como null (colunas uuid opcionais). */
+  nullable?: boolean
   hint?: string
   half?: boolean
 }
@@ -68,7 +72,7 @@ const NOTE_FIELDS: FieldDef[] = [
   { key: 'body', label: 'Conteúdo', type: 'textarea', rows: 10 },
 ]
 
-interface RowEditorProps {
+export interface RowEditorProps {
   table: TableName
   row: Row
   fields: FieldDef[]
@@ -78,7 +82,7 @@ interface RowEditorProps {
 }
 
 // O pai usa key={row.id}; o estado é reiniciado ao trocar de item.
-function RowEditor({ table, row, fields, onSaved, onDelete, deleteLabel = 'Excluir' }: RowEditorProps) {
+export function RowEditor({ table, row, fields, onSaved, onDelete, deleteLabel = 'Excluir' }: RowEditorProps) {
   const [values, setValues] = useState<Row>(row)
   const [saveState, setSaveState] = useState<SaveState>('saved')
   const latest = useRef<Row>(row)
@@ -93,7 +97,10 @@ function RowEditor({ table, row, fields, onSaved, onDelete, deleteLabel = 'Exclu
     if (mounted.current) setSaveState('saving')
     const { id, ...rest } = latest.current
     const fieldsToSave: Record<string, string | number | null> = { updated_at: new Date().toISOString() }
-    for (const f of fields) fieldsToSave[f.key] = rest[f.key] as string | number | null
+    for (const f of fields) {
+      const v = rest[f.key] as string | number | null
+      fieldsToSave[f.key] = f.nullable && v === '' ? null : v
+    }
     const { error } = await supabase.from(table).update(fieldsToSave).eq('id', id)
     if (error) {
       dirty.current = true
@@ -152,11 +159,17 @@ function RowEditor({ table, row, fields, onSaved, onDelete, deleteLabel = 'Exclu
                 <textarea id={id} value={String(value)} rows={f.rows ?? 4} onChange={(e) => edit(f.key, e.target.value)} className={inputClass} />
               ) : f.type === 'select' ? (
                 <select id={id} value={String(value)} onChange={(e) => edit(f.key, e.target.value)} className={inputClass}>
-                  {f.options?.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
+                  {f.choices
+                    ? f.choices.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))
+                    : f.options?.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
                 </select>
               ) : f.type === 'number' ? (
                 <input id={id} type="number" min={1} value={String(value)} onChange={(e) => edit(f.key, Number(e.target.value) || 0)} className={inputClass} />
@@ -171,9 +184,13 @@ function RowEditor({ table, row, fields, onSaved, onDelete, deleteLabel = 'Exclu
   )
 }
 
-interface RowsSectionProps {
+export interface RowsSectionProps {
   table: TableName
-  novelId: string
+  novelId?: string
+  /** Colunas fixas enviadas ao criar um item (alternativa a novelId). */
+  base?: Record<string, string | number>
+  /** Conteúdo extra abaixo do editor do item selecionado. */
+  aside?: (row: Row) => React.ReactNode
   rows: Row[]
   setRows: (updater: (current: Row[]) => Row[]) => void
   fields: FieldDef[]
@@ -186,7 +203,7 @@ interface RowsSectionProps {
   sort: (a: Row, b: Row) => number
 }
 
-function RowsSection({ table, novelId, rows, setRows, fields, itemLabel, newLabel, emptyText, title, subtitle, newDefaults, sort }: RowsSectionProps) {
+export function RowsSection({ table, novelId, base, aside, rows, setRows, fields, itemLabel, newLabel, emptyText, title, subtitle, newDefaults, sort }: RowsSectionProps) {
   const [selectedId, setSelectedId] = useState<string | null>(rows[0]?.id ?? null)
   const [error, setError] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<Row | null>(null)
@@ -197,7 +214,7 @@ function RowsSection({ table, novelId, rows, setRows, fields, itemLabel, newLabe
     setError(null)
     const { data, error: insertError } = await supabase
       .from(table)
-      .insert({ novel_id: novelId, ...newDefaults(rows) })
+      .insert({ ...(novelId ? { novel_id: novelId } : {}), ...base, ...newDefaults(rows) })
       .select('*')
       .single()
     if (insertError || !data) {
@@ -255,7 +272,12 @@ function RowsSection({ table, novelId, rows, setRows, fields, itemLabel, newLabe
               </li>
             ))}
           </ul>
-          {selected && <RowEditor key={selected.id} table={table} row={selected} fields={fields} onSaved={handleSaved} onDelete={setToDelete} />}
+          {selected && (
+            <div className="min-w-0 space-y-6">
+              <RowEditor key={selected.id} table={table} row={selected} fields={fields} onSaved={handleSaved} onDelete={setToDelete} />
+              {aside?.(selected)}
+            </div>
+          )}
         </div>
       )}
       {toDelete && (
@@ -281,7 +303,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'notas', label: 'Notas' },
 ]
 
-function wordCount(text: string) {
+export function wordCount(text: string) {
   const t = text.trim()
   return t ? t.split(/\s+/).length : 0
 }

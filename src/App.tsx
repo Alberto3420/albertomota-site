@@ -8,6 +8,7 @@ import MusicStudio from './pages/MusicStudio'
 import Dashboard from './pages/Dashboard'
 import Drafts from './pages/Drafts'
 import Romance from './pages/Romance'
+import Contos from './pages/Contos'
 
 export default function App() {
   return (
@@ -35,6 +36,14 @@ export default function App() {
         element={
           <RequireAuth>
             <Romance />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/contos"
+        element={
+          <RequireAuth>
+            <Contos />
           </RequireAuth>
         }
       />
