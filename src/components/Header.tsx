@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import InstallAppButton from './InstallAppButton'
 
 const NAV_LINKS = [
   { href: '#inicio', label: 'Início' },
@@ -44,6 +45,8 @@ export default function Header() {
               Painel admin
             </Link>
           )}
+          {/* Por enquanto só o admin vê. Para liberar ao público, troque isAdmin por user. */}
+          {isAdmin && <InstallAppButton className="text-sm font-medium text-gold-light hover:underline" />}
           {user ? (
             <button onClick={() => void signOut()} className="btn-secondary">
               Sair
@@ -90,6 +93,7 @@ export default function Header() {
                 Meu painel
               </Link>
             )}
+            {isAdmin && <InstallAppButton className="text-sm font-medium text-gold-light" />}
             {user ? (
               <button onClick={() => void signOut()} className="btn-secondary w-fit">
                 Sair
