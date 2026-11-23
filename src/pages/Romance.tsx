@@ -315,42 +315,73 @@ export default function Romance() {
   const [tab, setTab] = useState<Tab>('geral')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [novel, setNovel] = useState<Row | null>(null)
+  const [novels, setNovels] = useState<Row[]>([])
+  const [novelId, setNovelId] = useState<string | null>(null)
+  const [childrenLoading, setChildrenLoading] = useState(false)
   const [chapters, setChapters] = useState<Row[]>([])
   const [characters, setCharacters] = useState<Row[]>([])
   const [notes, setNotes] = useState<Row[]>([])
+  const novel = novels.find((n) => n.id === novelId) ?? null
 
   useEffect(() => {
     if (!allowed) return
     void (async () => {
-      const { data: novels, error: novelError } = await supabase.from('novels').select('*').order('created_at', { ascending: true }).limit(1)
+      const { data, error: novelError } = await supabase.from('novels').select('*').order('created_at', { ascending: true })
       if (novelError) {
         setError('Não foi possível carregar o romance. Confirme se o patch SQL do romance foi aplicado.')
-        setLoading(false)
-        return
-      }
-      const first = (novels?.[0] as Row | undefined) ?? null
-      setNovel(first)
-      if (first) {
-        const [c, p, n] = await Promise.all([
-          supabase.from('novel_chapters').select('*').eq('novel_id', first.id).order('number', { ascending: true }),
-          supabase.from('novel_characters').select('*').eq('novel_id', first.id).order('position', { ascending: true }),
-          supabase.from('novel_notes').select('*').eq('novel_id', first.id).order('position', { ascending: true }),
-        ])
-        setChapters((c.data as Row[]) ?? [])
-        setCharacters((p.data as Row[]) ?? [])
-        setNotes((n.data as Row[]) ?? [])
+      } else {
+        const list = (data as Row[]) ?? []
+        setNovels(list)
+        setNovelId(list[0]?.id ?? null)
       }
       setLoading(false)
     })()
   }, [allowed])
 
+  // Carrega capítulos, personagens e notas do romance selecionado.
+  useEffect(() => {
+    if (!novelId) return
+    let cancelled = false
+    setChildrenLoading(true)
+    void (async () => {
+      const [c, p, n] = await Promise.all([
+        supabase.from('novel_chapters').select('*').eq('novel_id', novelId).order('number', { ascending: true }),
+        supabase.from('novel_characters').select('*').eq('novel_id', novelId).order('position', { ascending: true }),
+        supabase.from('novel_notes').select('*').eq('novel_id', novelId).order('position', { ascending: true }),
+      ])
+      if (cancelled) return
+      setChapters((c.data as Row[]) ?? [])
+      setCharacters((p.data as Row[]) ?? [])
+      setNotes((n.data as Row[]) ?? [])
+      setChildrenLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [novelId])
+
   if (!allowed) return <Navigate to="/dashboard" replace />
 
   async function createNovel() {
+    setError(null)
     const { data, error: insertError } = await supabase.from('novels').insert({ title: 'Novo romance' }).select('*').single()
-    if (insertError || !data) setError('Não foi possível criar o romance.')
-    else setNovel(data as Row)
+    if (insertError || !data) {
+      setError('Não foi possível criar o romance.')
+      return
+    }
+    setNovels((current) => [...current, data as Row])
+    setNovelId((data as Row).id)
+    setTab('geral')
+  }
+
+  function selectNovel(id: string) {
+    if (id === novelId) return
+    setNovelId(id)
+    setTab('geral')
+  }
+
+  function handleNovelSaved(saved: Row) {
+    setNovels((current) => current.map((n) => (n.id === saved.id ? saved : n)))
   }
 
   const totalWords = chapters.reduce((sum, c) => sum + wordCount(String(c.content ?? '')), 0)
@@ -399,6 +430,21 @@ export default function Romance() {
           )
         ) : (
           <>
+            <div className="mt-8 flex flex-wrap items-center gap-2" aria-label="Romances">
+              {novels.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => selectNovel(n.id)}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${n.id === novelId ? 'bg-white/15 text-white ring-1 ring-gold' : 'border border-white/15 text-paper/60 hover:border-white/40'}`}
+                >
+                  {String(n.title || 'Sem título')}
+                </button>
+              ))}
+              <button onClick={() => void createNovel()} className="rounded-xl border border-dashed border-gold/60 px-4 py-2 text-sm font-semibold text-gold-light transition hover:bg-gold/10">
+                + Novo romance
+              </button>
+            </div>
+
             <nav className="mt-8 flex flex-wrap gap-2" aria-label="Seções do romance">
               {TABS.map((t) => (
                 <button
@@ -412,9 +458,11 @@ export default function Romance() {
             </nav>
 
             <div className="mt-6">
-              {tab === 'geral' && <RowEditor table="novels" row={novel} fields={NOVEL_FIELDS} onSaved={setNovel} />}
-              {tab === 'capitulos' && (
+              {tab === 'geral' && <RowEditor key={novel.id} table="novels" row={novel} fields={NOVEL_FIELDS} onSaved={handleNovelSaved} />}
+              {tab !== 'geral' && childrenLoading && <p className="text-sm text-paper/50">Carregando…</p>}
+              {tab === 'capitulos' && !childrenLoading && (
                 <RowsSection
+                  key={novel.id}
                   table="novel_chapters"
                   novelId={String(novel.id)}
                   rows={chapters}
@@ -429,8 +477,9 @@ export default function Romance() {
                   sort={(a, b) => Number(a.number) - Number(b.number)}
                 />
               )}
-              {tab === 'personagens' && (
+              {tab === 'personagens' && !childrenLoading && (
                 <RowsSection
+                  key={novel.id}
                   table="novel_characters"
                   novelId={String(novel.id)}
                   rows={characters}
@@ -445,8 +494,9 @@ export default function Romance() {
                   sort={byPosition}
                 />
               )}
-              {tab === 'notas' && (
+              {tab === 'notas' && !childrenLoading && (
                 <RowsSection
+                  key={novel.id}
                   table="novel_notes"
                   novelId={String(novel.id)}
                   rows={notes}
