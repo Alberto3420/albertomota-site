@@ -381,7 +381,41 @@ export default function Romance() {
   }
 
   function handleNovelSaved(saved: Row) {
-    setNovels((current) => current.map((n) => (n.id === saved.id ? saved : n)))
+    // cover_url não é um campo do editor; preserva o valor atual para não voltar ao antigo.
+    setNovels((current) => current.map((n) => (n.id === saved.id ? { ...saved, cover_url: n.cover_url } : n)))
+  }
+
+  async function handleCoverFile(file: File) {
+    if (!novel) return
+    setError(null)
+    if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) {
+      setError('Escolha uma imagem de até 10 MB.')
+      return
+    }
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const path = `${novel.id}/capa-${Date.now()}.${ext || 'jpg'}`
+    const { error: upError } = await supabase.storage.from('romance-capas').upload(path, file, { contentType: file.type })
+    if (upError) {
+      setError('Não foi possível enviar a capa. Confirme se o patch SQL da capa foi aplicado.')
+      return
+    }
+    const url = supabase.storage.from('romance-capas').getPublicUrl(path).data.publicUrl
+    const { error: dbError } = await supabase.from('novels').update({ cover_url: url }).eq('id', novel.id)
+    if (dbError) {
+      setError('A imagem foi enviada, mas não foi possível gravar a capa.')
+      return
+    }
+    setNovels((current) => current.map((n) => (n.id === novel.id ? { ...n, cover_url: url } : n)))
+  }
+
+  async function removeCover() {
+    if (!novel) return
+    const { error: dbError } = await supabase.from('novels').update({ cover_url: '' }).eq('id', novel.id)
+    if (dbError) {
+      setError('Não foi possível remover a capa.')
+      return
+    }
+    setNovels((current) => current.map((n) => (n.id === novel.id ? { ...n, cover_url: '' } : n)))
   }
 
   const totalWords = chapters.reduce((sum, c) => sum + wordCount(String(c.content ?? '')), 0)
@@ -458,7 +492,44 @@ export default function Romance() {
             </nav>
 
             <div className="mt-6">
-              {tab === 'geral' && <RowEditor key={novel.id} table="novels" row={novel} fields={NOVEL_FIELDS} onSaved={handleNovelSaved} />}
+              {tab === 'geral' && (
+                <>
+                  <div className="mb-6 flex flex-wrap items-start gap-5 rounded-2xl border border-[#24457a] bg-[#0f2547] p-5">
+                    {novel.cover_url ? (
+                      <img src={String(novel.cover_url)} alt={`Capa de ${novel.title}`} className="w-40 rounded-lg shadow-lg" />
+                    ) : (
+                      <div className="flex aspect-[2/3] w-40 items-center justify-center rounded-lg border border-dashed border-white/25 p-3 text-center text-xs text-paper/50">
+                        Sem capa
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold">Capa do romance</p>
+                      <p className="mt-1 text-xs text-paper/55">Imagem vertical (2:3 recomendado), até 10 MB.</p>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        <label className="cursor-pointer rounded-full bg-gold px-4 py-2 text-sm font-semibold text-body">
+                          {novel.cover_url ? 'Trocar capa' : 'Enviar capa'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0]
+                              e.target.value = ''
+                              if (f) void handleCoverFile(f)
+                            }}
+                          />
+                        </label>
+                        {novel.cover_url && (
+                          <button onClick={() => void removeCover()} className="rounded-full border border-white/25 px-4 py-2 text-sm text-paper/70 hover:border-white/50">
+                            Remover
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <RowEditor key={novel.id} table="novels" row={novel} fields={NOVEL_FIELDS} onSaved={handleNovelSaved} />
+                </>
+              )}
               {tab !== 'geral' && childrenLoading && <p className="text-sm text-paper/50">Carregando…</p>}
               {tab === 'capitulos' && !childrenLoading && (
                 <RowsSection
