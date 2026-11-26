@@ -133,7 +133,7 @@ export default function Dashboard() {
         <section className="min-w-0">
           {activeView === 'home' ? (
             <div className="flex min-h-[60vh] items-center justify-center rounded-2xl border border-[#24457a] bg-[#0a1a33] p-8">
-              <img src="/logo-alberto-mota.png" alt="Alberto Mota" className="max-h-[50vh] w-auto max-w-full object-contain" />
+              <img src="/hero-escrevendo.png" alt="Alberto Mota escrevendo" className="max-h-[50vh] w-auto max-w-full object-contain" />
             </div>
           ) : activeView === 'music' ? (
             <>
