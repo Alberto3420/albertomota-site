@@ -1,5 +1,4 @@
 import CopyButton from './CopyButton'
-import SyncedLyrics from './SyncedLyrics'
 import VideoTest from './VideoTest'
 import { useAuth } from '../context/AuthContext'
 import type { MusicVersion } from '../types/models'
@@ -24,7 +23,7 @@ export default function MusicVersionCard({ version }: { version: MusicVersion })
       </p>
       {version.audio_url ? (
         <>
-          <SyncedLyrics version={version} />
+          <audio controls className="mt-3 w-full" src={version.audio_url} />
           {isAdmin && version.status === 'ready' && <VideoTest versionId={version.id} existingUrl={version.video_url} />}
           <a
             href={version.audio_url}

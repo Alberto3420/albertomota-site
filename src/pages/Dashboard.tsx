@@ -9,7 +9,7 @@ export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const location = useLocation()
   const draft = (location.state as { draft?: StudioDraft } | null)?.draft
-  const [activeView, setActiveView] = useState<'music' | 'generate'>(draft ? 'generate' : 'music')
+  const [activeView, setActiveView] = useState<'home' | 'music' | 'generate'>(draft ? 'generate' : 'home')
   const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [credits, setCredits] = useState<number | null>(null)
   const [creditsError, setCreditsError] = useState(false)
@@ -131,7 +131,11 @@ export default function Dashboard() {
         </nav>
 
         <section className="min-w-0">
-          {activeView === 'music' ? (
+          {activeView === 'home' ? (
+            <div className="flex min-h-[60vh] items-center justify-center rounded-2xl border border-[#24457a] bg-[#0a1a33] p-8">
+              <img src="/logo-alberto-mota.png" alt="Alberto Mota" className="max-h-[50vh] w-auto max-w-full object-contain" />
+            </div>
+          ) : activeView === 'music' ? (
             <>
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
