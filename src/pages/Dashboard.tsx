@@ -4,12 +4,16 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import MusicStudio, { type StudioDraft } from './MusicStudio'
 import MusicProjectItem, { type ProjectWithRelations } from '../components/MusicProjectItem'
+import Drafts from './Drafts'
+import Romance from './Romance'
+import Contos from './Contos'
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const location = useLocation()
   const draft = (location.state as { draft?: StudioDraft } | null)?.draft
-  const [activeView, setActiveView] = useState<'home' | 'music' | 'generate'>(draft ? 'generate' : 'home')
+  const [studioDraft, setStudioDraft] = useState<StudioDraft | undefined>(draft)
+  const [activeView, setActiveView] = useState<'home' | 'music' | 'generate' | 'drafts' | 'romance' | 'contos'>(draft ? 'generate' : 'home')
   const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [credits, setCredits] = useState<number | null>(null)
   const [creditsError, setCreditsError] = useState(false)
@@ -115,17 +119,26 @@ export default function Dashboard() {
           >
             Gerar música
           </button>
-          <Link to="/rascunhos" className="mt-1 block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-paper/70 transition hover:bg-white/10">
+          <button
+            onClick={() => setActiveView('drafts')}
+            className={`mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'drafts' ? 'bg-gold text-body' : 'text-paper/70 hover:bg-white/10'}`}
+          >
             Rascunhos
-          </Link>
+          </button>
           {user?.email?.toLowerCase() === 'omegasist1516@gmail.com' && (
             <>
-              <Link to="/romance" className="mt-1 block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-paper/70 transition hover:bg-white/10">
+              <button
+                onClick={() => setActiveView('romance')}
+                className={`mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'romance' ? 'bg-gold text-body' : 'text-paper/70 hover:bg-white/10'}`}
+              >
                 Romance
-              </Link>
-              <Link to="/contos" className="mt-1 block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-paper/70 transition hover:bg-white/10">
+              </button>
+              <button
+                onClick={() => setActiveView('contos')}
+                className={`mt-1 w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${activeView === 'contos' ? 'bg-gold text-body' : 'text-paper/70 hover:bg-white/10'}`}
+              >
                 Contos e Crônicas
-              </Link>
+              </button>
             </>
           )}
         </nav>
@@ -164,8 +177,20 @@ export default function Dashboard() {
                 )}
               </div>
             </>
+          ) : activeView === 'drafts' ? (
+            <Drafts
+              embedded
+              onUseDraft={(d) => {
+                setStudioDraft(d)
+                setActiveView('generate')
+              }}
+            />
+          ) : activeView === 'romance' ? (
+            <Romance embedded />
+          ) : activeView === 'contos' ? (
+            <Contos embedded />
           ) : (
-            <MusicStudio embedded onCreated={handleCreated} initialDraft={draft} />
+            <MusicStudio embedded onCreated={handleCreated} initialDraft={studioDraft} />
           )}
         </section>
       </div>

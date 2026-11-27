@@ -147,7 +147,7 @@ function DraftEditor({ draft, onSaved, onUse, onDelete }: DraftEditorProps) {
   )
 }
 
-export default function Drafts() {
+export default function Drafts({ embedded = false, onUseDraft }: { embedded?: boolean; onUseDraft?: (draft: { id: string; title: string; melody: string; lyrics: string }) => void }) {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [drafts, setDrafts] = useState<MusicDraft[]>([])
@@ -192,7 +192,9 @@ export default function Drafts() {
   }
 
   function handleUse(draft: MusicDraft) {
-    navigate('/dashboard', { state: { draft: { id: draft.id, title: draft.title, melody: draft.melody, lyrics: draft.lyrics } } })
+    const payload = { id: draft.id, title: draft.title, melody: draft.melody, lyrics: draft.lyrics }
+    if (onUseDraft) onUseDraft(payload)
+    else navigate('/dashboard', { state: { draft: payload } })
   }
 
   async function confirmDelete() {
@@ -214,8 +216,8 @@ export default function Drafts() {
   const selected = drafts.find((item) => item.id === selectedId) ?? null
 
   return (
-    <main className="min-h-screen bg-[#111817] text-paper print:bg-white print:text-black">
-      <header className="border-b border-white/10 bg-navy text-white print:hidden">
+    <main className={embedded ? 'text-paper print:bg-white print:text-black' : 'min-h-screen bg-[#111817] text-paper print:bg-white print:text-black'}>
+      {!embedded && <header className="border-b border-white/10 bg-navy text-white print:hidden">
         <div className="container-page flex min-h-20 items-center justify-between gap-4">
           <div>
             <Link to="/dashboard" className="text-sm text-white/60 hover:text-white">← Voltar ao painel</Link>
@@ -228,9 +230,9 @@ export default function Drafts() {
             </button>
           </div>
         </div>
-      </header>
+      </header>}
 
-      <div className="container-page py-10 print:py-0">
+      <div className={embedded ? 'print:py-0' : 'container-page py-10 print:py-0'}>
         <div className="flex flex-wrap items-end justify-between gap-4 print:hidden">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Caderno de composição</p>

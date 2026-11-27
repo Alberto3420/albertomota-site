@@ -33,7 +33,7 @@ const TABS: { id: Tab; label: string }[] = [
 const byPosition = (a: Row, b: Row) => Number(a.position) - Number(b.position)
 const nextPosition = (rows: Row[]) => rows.reduce((m, r) => Math.max(m, Number(r.position)), 0) + 1
 
-export default function Contos() {
+export default function Contos({ embedded = false }: { embedded?: boolean }) {
   const { user, profile, signOut } = useAuth()
   const allowed = user?.email?.toLowerCase() === ROMANCE_OWNER_EMAIL
 
@@ -138,8 +138,8 @@ export default function Contos() {
   }
 
   return (
-    <main className="min-h-screen bg-[#111817] text-paper">
-      <header className="border-b border-white/10 bg-navy text-white">
+    <main className={embedded ? 'text-paper' : 'min-h-screen bg-[#111817] text-paper'}>
+      {!embedded && <header className="border-b border-white/10 bg-navy text-white">
         <div className="container-page flex min-h-20 items-center justify-between gap-4">
           <div>
             <Link to="/dashboard" className="text-sm text-white/60 hover:text-white">
@@ -154,9 +154,9 @@ export default function Contos() {
             </button>
           </div>
         </div>
-      </header>
+      </header>}
 
-      <div className="container-page py-10">
+      <div className={embedded ? '' : 'container-page py-10'}>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Escrita</p>
         <h1 className="mt-2 text-3xl font-semibold">Contos e Crônicas</h1>
         <p className="mt-2 text-paper/60">
