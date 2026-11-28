@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
+import BookPdfButton from '../components/BookPdfButton'
 import { ROMANCE_OWNER_EMAIL, RowsSection, wordCount, type FieldDef, type Row } from './Romance'
 
 const WORK_STATUS = ['ideia', 'esboço', 'escrito', 'revisado', 'final']
@@ -162,6 +163,22 @@ export default function Contos({ embedded = false }: { embedded?: boolean }) {
         <p className="mt-2 text-paper/60">
           {works.length} obras · {characters.length} personagens · {settings.length} cenários · {totalWords.toLocaleString('pt-BR')} palavras escritas
         </p>
+        {!loading && !error && works.length > 0 && (
+          <div className="mt-4">
+            <BookPdfButton
+              fileName="Contos e Crônicas.pdf"
+              getBook={() => ({
+                title: 'Contos e Crônicas',
+                author: String(profile?.display_name || 'Alberto Mota'),
+                sections: [...works].sort(byPosition).map((w) => ({
+                  label: String(w.kind || ''),
+                  title: String(w.title || 'Sem título'),
+                  text: String(w.content || ''),
+                })),
+              })}
+            />
+          </div>
+        )}
 
         {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
 

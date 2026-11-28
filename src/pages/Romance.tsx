@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import ConfirmDialog from '../components/ConfirmDialog'
+import BookPdfButton from '../components/BookPdfButton'
 
 export const ROMANCE_OWNER_EMAIL = 'omegasist1516@gmail.com'
 
@@ -447,6 +448,29 @@ export default function Romance({ embedded = false }: { embedded?: boolean }) {
           <p className="mt-2 text-paper/60">
             {chapters.length} capítulos · {characters.length} personagens · {totalWords.toLocaleString('pt-BR')} palavras escritas
           </p>
+        )}
+        {novel && !childrenLoading && (
+          <div className="mt-4">
+            <BookPdfButton
+              fileName={`${String(novel.title || 'romance').replace(/[^\w\-À-ú ]+/g, '').trim() || 'romance'}.pdf`}
+              getBook={() => ({
+                title: String(novel.title || 'Sem título'),
+                subtitle: String(novel.subtitle || ''),
+                author: String(novel.author || ''),
+                coverUrl: String(novel.cover_url || ''),
+                sections: [...chapters]
+                  .sort((a, b) => Number(a.number) - Number(b.number))
+                  .map((c) => {
+                    const prologue = Number(c.number) === 0 || /^pr[óo]logo/i.test(String(c.title || '').trim())
+                    return {
+                      label: prologue ? '' : `Capítulo ${c.number}`,
+                      title: String(c.title || (prologue ? 'Prólogo' : '')),
+                      text: String(c.content || ''),
+                    }
+                  }),
+              })}
+            />
+          </div>
         )}
 
         {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
